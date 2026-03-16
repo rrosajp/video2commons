@@ -33,8 +33,8 @@
 			}
 		}
 
+		// Convert URLs into anchors contained in the message if they exist.
 		if (args?.urls != null && args.urls.length > 0) {
-			// Add URLs into anchors contained in the message if they exist.
 			message = processLink(message, args.urls);
 		}
 
