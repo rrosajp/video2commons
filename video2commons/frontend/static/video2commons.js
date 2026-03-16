@@ -1,5 +1,72 @@
 /* globals nunjucks: false, io: false, Qs: false */
 (($) => {
+	/**
+	 * Translates a message key with optional parameters (URLs and positional).
+	 *
+	 * @param {string} key The message key to translate.
+	 * @param {object} args The arguments to pass to the message.
+	 * @param {Set<string>} seen Tracks visited keys to prevent circular references.
+	 * @return {string} The translated message.
+	 */
+	const translate = (key, args, seen = new Set()) => {
+		if (seen.has(key)) {
+			return "";
+		}
+		seen.add(key);
+
+		let message = i18n[key];
+		if (message == null) {
+			return `⧼${key}⧽`;
+		}
+
+		// Resolve nested {{int:<key>}} magic words recursively.
+		message = resolveNestedMessages(message, seen);
+
+		if (args?.params != null) {
+			// Replace all occurrences of positional parameters. Contains a
+			// negative lookahead to avoid accidental substring replacements.
+			for (let i = 1; i < args.params.length + 1; i++) {
+				message = message.replace(
+					new RegExp(`\\$${i}(?!\\d)`, "g"),
+					() => args.params[i - 1],
+				);
+			}
+		}
+
+		if (args?.urls != null && args.urls.length > 0) {
+			// Add URLs into anchors contained in the message if they exist.
+			message = processLink(message, args.urls);
+		}
+
+		// Remove the key from the seen set to prevent improper circular
+		// reference detection by siblings at the same nesting level.
+		seen.delete(key);
+
+		return message;
+	};
+
+	const MAGIC_WORD_REGEX = /\{\{int:([^{}]*)\}\}/;
+
+	/**
+	 * Parses "int" magic words and returns translated text.
+	 *
+	 * This function handles nested magic words passed as parameters as well.
+	 * For more information, see https://www.mediawiki.org/wiki/Help:Magic_words
+	 *
+	 * @param {string} text The text to parse.
+	 * @param {Set<string>} seen Tracks visited keys to prevent circular references.
+	 * @return {string} The text with magic words resolved.
+	 */
+	const resolveNestedMessages = (text, seen = new Set()) => {
+		while (MAGIC_WORD_REGEX.test(text)) {
+			text = text.replace(MAGIC_WORD_REGEX, (_, content) => {
+				const [key, ...params] = content.split("|");
+				return translate(key.trim(), { params }, seen);
+			});
+		}
+		return text;
+	};
+
 	const processLink = (text, urls) => {
 		var regex = /\{\{#a\}\}(.*?)\{\{\/a\}\}/g,
 			last = 0,
@@ -73,13 +140,7 @@
 		csrfToken = "",
 		nunjucksEnv = new nunjucks.Environment()
 			.addGlobal("config", config)
-			.addGlobal("_", (key, args) => {
-				let message = i18n[key];
-				if (args?.urls != null && args.urls.length > 0) {
-					message = processLink(i18n[key], args.urls);
-				}
-				return message;
-			})
+			.addGlobal("_", translate)
 			.addFilter("process_link", processLink);
 
 	var $detailsModal, $addTaskDialog, newTaskData, newTaskDataQS, username;
