@@ -33,6 +33,7 @@ import yt_dlp
 
 from video2commons.shared.yt_dlp import add_youtube_params
 from video2commons.frontend.wcqs import WcqsSession
+from video2commons.frontend.shared import redisconnection
 
 SITE = pywikibot.Site()
 
@@ -74,6 +75,9 @@ HEAVY_RESOLUTION_THRESHOLD = 3840
 HEAVY_BITRATE_THRESHOLD = 20000
 DEFAULT_QUEUE = "celery"
 HEAVY_QUEUE = "heavy"
+
+REDIS_PREFIX_BLACKLIST_KEY = "commons:filename-prefix-blacklist"
+REDIS_PREFIX_BLACKLIST_TTL = 24 * 3600  # 1 day
 
 
 def predict_task_type(metadata):
@@ -468,6 +472,33 @@ sanitationRules = [
 ]
 
 
+def get_filename_prefix_blacklist():
+    """Get the filename prefix blacklist from Commons, cached in Redis."""
+    cached = redisconnection.get(REDIS_PREFIX_BLACKLIST_KEY)
+    if cached is not None:
+        return json.loads(cached)
+
+    prefixes = []
+
+    for line in SITE.mediawiki_message("filename-prefix-blacklist").splitlines():
+        line = line.strip()
+
+        # Shave off comments from the line.
+        if (comment_pos := line.find("#")) >= 0:
+            line = line[:comment_pos].strip()
+
+        if line:
+            prefixes.append(line)
+
+    # Save the prefix blacklist to the cache so we don't need to query Commons
+    # every single time we validate a filename. These rules do not change often.
+    redisconnection.set(
+        REDIS_PREFIX_BLACKLIST_KEY, json.dumps(prefixes), ex=REDIS_PREFIX_BLACKLIST_TTL
+    )
+
+    return prefixes
+
+
 def sanitize(filename):
     """Sanitize a filename for uploading."""
     for rule in sanitationRules:
@@ -500,6 +531,16 @@ def do_validate_filename(filename):
         reobj = rule["pattern"].search(filename)
         assert not reobj or reobj.group(0) == " ", (
             "Your filename contains an illegal part: %r" % reobj.group(0)
+        )
+
+    # We check against the normalized version of the filename since the prefix
+    # blacklist performs its validation after title capitalization.
+    normalized = capitalize_first_letter(filename)
+
+    for prefix in get_filename_prefix_blacklist():
+        assert not normalized.startswith(prefix), (
+            "Your filename starts with a disallowed prefix: %r, "
+            "please choose a more descriptive name" % prefix
         )
 
     return filename.replace("_", " ")

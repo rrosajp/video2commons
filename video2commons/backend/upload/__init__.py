@@ -84,16 +84,14 @@ def upload(
             exponential_backoff(remaining_tries)
 
         try:
-            if not site.upload(
+            site.upload(
                 page,
                 source_filename=filename,
                 comment=comment,
                 text=filedesc,
                 chunk_size=chunk_size,
                 asynchronous=bool(chunk_size),
-                ignore_warnings=["exists-normalized"],
-            ):
-                errorcallback("Upload failed!")
+            )
 
             break  # The upload completed successfully.
         except TaskError:
