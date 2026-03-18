@@ -533,8 +533,12 @@ def do_validate_filename(filename):
             "Your filename contains an illegal part: %r" % reobj.group(0)
         )
 
+    # We check against the normalized version of the filename since the prefix
+    # blacklist performs its validation after title capitalization.
+    normalized = capitalize_first_letter(filename)
+
     for prefix in get_filename_prefix_blacklist():
-        assert not filename.startswith(prefix), (
+        assert not normalized.startswith(prefix), (
             "Your filename starts with a disallowed prefix: %r, "
             "please choose a more descriptive name" % prefix
         )
