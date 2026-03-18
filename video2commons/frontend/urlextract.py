@@ -504,7 +504,7 @@ def sanitize(filename):
     for rule in sanitationRules:
         filename = rule["pattern"].sub(rule["replace"], filename)
 
-    return filename
+    return filename.strip()
 
 
 def capitalize_first_letter(input_string):
