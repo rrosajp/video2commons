@@ -91,6 +91,7 @@ def upload(
                 text=filedesc,
                 chunk_size=chunk_size,
                 asynchronous=bool(chunk_size),
+                ignore_warnings=["exists-normalized"],
             )
 
             break  # The upload completed successfully.
