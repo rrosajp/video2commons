@@ -25,8 +25,15 @@ class TaskError(Exception):
 
     def __init__(self, desc):
         """Initialize."""
+        if isinstance(desc, bytes):
+            desc = desc.decode("utf-8", errors="replace")
+
         super().__init__(desc)
+
         self.desc = desc
+
+    def __str__(self):
+        return self.desc
 
     def __reduce__(self):
         """Helper for pickling."""

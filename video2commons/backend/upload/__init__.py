@@ -26,6 +26,14 @@ import time
 import os
 import pywikibot
 
+from pywikibot.exceptions import (
+    ApiNotAvailableError,
+    FatalServerError,
+    ServerError,
+    TimeoutError,
+    APIError,
+)
+
 from video2commons.exceptions import TaskError
 
 MAX_RETRIES = 5
@@ -38,6 +46,8 @@ UNCHUNKED_LIMIT_BYTES = 100 * 1024 * 1024
 
 # Limit chunk size to 16 MiB for chunked uploads exceeding 100 MiB.
 CHUNK_SIZE = 16 * 1024 * 1024
+
+IGNORED_WARNINGS = ["exists-normalized"]
 
 
 def upload(
@@ -83,6 +93,16 @@ def upload(
         if remaining_tries != MAX_RETRIES:
             exponential_backoff(remaining_tries)
 
+        upload_warnings = []
+
+        # Filter warnings using a custom callback instead of a list so we can
+        # collect a list of UploadErrors corresponding to fatal warnings.
+        def ignore_warnings(warnings):
+            upload_warnings.extend(
+                w for w in warnings if w.code not in IGNORED_WARNINGS
+            )
+            return not upload_warnings
+
         try:
             site.upload(
                 page,
@@ -91,22 +111,39 @@ def upload(
                 text=filedesc,
                 chunk_size=chunk_size,
                 asynchronous=bool(chunk_size),
-                ignore_warnings=["exists-normalized"],
+                ignore_warnings=ignore_warnings,
             )
 
+            # Setting 'ignore_warnings' makes site.upload() no longer raise
+            # exceptions for any warnings not covered in the list, just a
+            # falsey return value.
+            #
+            # Use a custom callback to collect fatal warnings and re-raise
+            # those to workaround this so the full warning messages get shown
+            # to the user.
+            if len(upload_warnings) == 1:
+                raise upload_warnings[0]
+            elif len(upload_warnings) > 1:
+                messages = ", ".join(str(w) for w in upload_warnings)
+                raise TaskError(f"Upload failed due to multiple errors: {messages}")
+
             break  # The upload completed successfully.
-        except TaskError:
-            raise  # Don't retry errors caused by errorcallback.
-        except pywikibot.exceptions.APIError:
+        except (FatalServerError, TaskError):
+            raise  # These will not be corrected by resending.
+        except (ServerError, TimeoutError, ApiNotAvailableError):
+            # These errors are possibly transient, so retry them.
+            remaining_tries -= 1
+            if remaining_tries == 0:
+                raise  # No more retries, raise the error.
+        except APIError:
             # Recheck in case the error didn't prevent the upload.
             site.loadpageinfo(page)
             if page.exists():
                 break  # The upload completed successfully.
 
-            remaining_tries -= 1
-            if remaining_tries == 0:
-                raise  # No more retries, raise the error.
+            raise  # These errors are unlikely to be transient, so re-raise.
         except Exception:
+            # Retry by default for any other errors.
             remaining_tries -= 1
             if remaining_tries == 0:
                 raise  # No more retries, raise the error.
