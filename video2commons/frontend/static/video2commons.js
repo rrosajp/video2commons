@@ -113,14 +113,14 @@
 			'<img alt="File:Ajax-loader.gif" src="//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif" data-file-width="32" data-file-height="32" height="32" width="32">',
 		rtl = i18n["@dir"] === "rtl",
 		htmlContent = {
-			abortbutton: `<button type="button" class="btn btn-danger btn-xs flip pull-right"><span class="glyphicon glyphicon-remove"></span> ${nunjucks.lib.escape(i18n.abort)}</button>`,
-			removebutton: `<button type="button" class="btn btn-danger btn-xs flip pull-right remove-btn"><span class="glyphicon glyphicon-trash"></span> ${nunjucks.lib.escape(i18n.remove)}</button>`,
-			restartbutton: `<button type="button" class="btn btn-xs flip pull-right restart-btn"><span class="glyphicon glyphicon-repeat"></span> ${nunjucks.lib.escape(i18n.restart)}</button>`,
-			detailsbutton: `<button type="button" class="btn btn-xs flip pull-right details-btn"><span class="glyphicon glyphicon-info-sign"></span> ${nunjucks.lib.escape(i18n.details)}</button>`,
-			loading: `<center>${loaderImage}&nbsp;&nbsp;${nunjucks.lib.escape(i18n.loading)}</center>`,
+			abortbutton: `<button type="button" class="btn btn-danger btn-xs"><i class="bi bi-x-lg"></i> ${nunjucks.lib.escape(i18n.abort)}</button>`,
+			removebutton: `<button type="button" class="btn btn-danger btn-xs remove-btn"><i class="bi bi-trash"></i> ${nunjucks.lib.escape(i18n.remove)}</button>`,
+			restartbutton: `<button type="button" class="btn btn-xs restart-btn"><i class="bi bi-arrow-repeat"></i> ${nunjucks.lib.escape(i18n.restart)}</button>`,
+			detailsbutton: `<button type="button" class="btn btn-xs details-btn"><i class="bi bi-info-circle"></i> ${nunjucks.lib.escape(i18n.details)}</button>`,
+			loading: `<div class="text-center">${loaderImage}&nbsp;&nbsp;${nunjucks.lib.escape(i18n.loading)}</div>`,
 			errorDisconnect: `<div class="alert alert-danger">${nunjucks.lib.escape(i18n.errorDisconnect)}</div>`,
-			yourTasks: `<h4>${nunjucks.lib.escape(i18n.yourTasks)}</h4><table id="tasktable" class="table"><colgroup><col style="width: 20%;"/><col style="width: 10%;"/><col style="width: 40%;"/><col style="width: 30%;"/></colgroup><tbody></tbody></table>`,
-			workers: `<h4>${nunjucks.lib.escape(i18n.workers)}</h4>`,
+			yourTasks: `<h4 class="my-3">${nunjucks.lib.escape(i18n.yourTasks)}</h4><table id="tasktable" class="table table-bordered mb-0"><colgroup><col style="width: 20%;"/><col style="width: 10%;"/><col style="width: 40%;"/><col style="width: 30%;"/></colgroup><tbody></tbody></table>`,
+			workers: `<h4 class="my-3">${nunjucks.lib.escape(i18n.workers)}</h4>`,
 			capacity: rtl
 				? `<div><span id="capacity">...</span> ${i18n.capacity}</div>`
 				: `<div>${i18n.capacity} <span id="capacity">...</span></div>`,
@@ -130,11 +130,11 @@
 			pending: rtl
 				? `<div><span id="pending">...</span> ${i18n.pending}</div>`
 				: `<div>${i18n.pending} <span id="pending">...</span></div>`,
-			addTask: `<input class="btn btn-primary btn-md" type="button" accesskey="n" value="${nunjucks.lib.escape(i18n.addTask)}">`,
+			addTask: `<input class="btn btn-primary my-3" type="button" accesskey="n" value="${nunjucks.lib.escape(i18n.addTask)}">`,
 			progressbar:
 				'<div class="progress"><div class="progress-bar" role="progressbar"></div></div>',
-			prevbutton: `<span class="glyphicon glyphicon-chevron-${rtl ? "right" : "left"}"></span> ${nunjucks.lib.escape(i18n.back)}`,
-			nextbutton: `${nunjucks.lib.escape(i18n.next)} <span class="glyphicon glyphicon-chevron-${rtl ? "left" : "right"}"></span>`,
+			prevbutton: `<i class="bi bi-chevron-${rtl ? "right" : "left"}"></i> ${nunjucks.lib.escape(i18n.back)}`,
+			nextbutton: `${nunjucks.lib.escape(i18n.next)} <i class="bi bi-chevron-${rtl ? "left" : "right"}"></i>`,
 			confirmbutton: nunjucks.lib.escape(i18n.confirm),
 		},
 		csrfToken = "",
@@ -368,7 +368,7 @@
 		getPlaylistData: () => {
 			const selectedVideos = [];
 
-			$addTaskDialog.find(".video-select:checked").each(function () {
+			$addTaskDialog.find(".video-select:checked").each(function() {
 				const index = parseInt($(this).val(), 10);
 				const video = newTaskData.videos[index];
 				selectedVideos.push(video);
@@ -662,9 +662,11 @@
 				});
 			} else if (window.location.search.slice(1)) {
 				newTaskDataQS = Qs.parse(window.location.search.slice(1));
-				video2commons.addTask({
-					url: newTaskDataQS.url,
-				});
+				if (newTaskDataQS.url) {
+					video2commons.addTask({
+						url: newTaskDataQS.url,
+					});
+				}
 			}
 		},
 
@@ -690,8 +692,8 @@
 			}
 
 			var socketmatch = config.socketio_uri.match(
-					/^((?:(?:https?:)?\/\/)?[^/]+)(\/.*)$/,
-				),
+				/^((?:(?:https?:)?\/\/)?[^/]+)(\/.*)$/,
+			),
 				sockethost = socketmatch[1],
 				socketpath = socketmatch[2],
 				socket = (window.socket = io(sockethost, { path: socketpath }));
@@ -786,7 +788,7 @@
 			});
 
 			// remove extras
-			table.find("> tr").each(function () {
+			table.find("> tr").each(function() {
 				var $row = $(this),
 					id = video2commons.getTaskIDFromDOMID($row.attr("id"));
 				if (ids.indexOf(id) < 0) {
@@ -870,7 +872,7 @@
 						.find(`#${id}-restartbutton`)
 						.show()
 						.off()
-						.click(function () {
+						.click(function() {
 							video2commons.eventTask(this, "restart");
 						});
 				} else {
@@ -882,7 +884,7 @@
 						.find(`#${id}-detailsbutton`)
 						.show()
 						.off()
-						.click(function () {
+						.click(function() {
 							video2commons.openDetailsModal(val.text, {
 								reportable: val.reportable,
 							});
@@ -914,20 +916,24 @@
 								.append($("<span />").attr("id", `${id}-statustext`)),
 						)
 						.append($("<td />").attr("id", `${id}-progress`));
-					var $abortbutton = video2commons.eventButton(id, "abort");
-					$row.find(`#${id}-status`).append($abortbutton);
-					var progressbar = $row
+					const $abortbutton = video2commons.eventButton(id, "abort");
+					const $btnGroup = $("<span />")
+						.css("white-space", "nowrap")
+						.addClass("float-end")
+						.append($abortbutton);
+					$row.find(`#${id}-status`).append($btnGroup);
+					const progressbar = $row
 						.find(`#${id}-progress`)
 						.html(htmlContent.progressbar);
 					video2commons.setProgressBar(progressbar, -1);
-					$row.removeClass("success danger");
+					$row.removeClass("table-success table-danger");
 					break;
 				}
 				case "done":
 					video2commons.appendButtons(
 						[video2commons.eventButton(id, "remove")],
 						$row,
-						["danger", "success"],
+						["table-danger", "table-success"],
 						id,
 					);
 					break;
@@ -941,15 +947,15 @@
 						.hide();
 
 					video2commons.appendButtons(
-						[$removebutton, $restartbutton, $detailsbutton],
+						[$restartbutton, $detailsbutton, $removebutton],
 						$row,
-						["success", "danger"],
+						["table-success", "table-danger"],
 						id,
 					);
 					break;
 				}
 				case "abort":
-					video2commons.appendButtons([], $row, ["success", "danger"], id);
+					video2commons.appendButtons([], $row, ["table-success", "table-danger"], id);
 					break;
 			}
 
@@ -960,13 +966,12 @@
 			var $bar = $item.find(".progress-bar");
 			if (progress < 0) {
 				$bar
-					.addClass("progress-bar-striped active")
-					.addClass("active")
+					.addClass("progress-bar-striped progress-bar-animated")
 					.text("");
 				progress = 100;
 			} else {
 				$bar
-					.removeClass("progress-bar-striped active")
+					.removeClass("progress-bar-striped progress-bar-animated")
 					.text(`${Math.round(progress)}%`);
 			}
 
@@ -1015,25 +1020,26 @@
 			$(htmlContent[`${eventName}button`])
 				.attr("id", `${id}-${eventName}button`)
 				.off()
-				.click(function () {
+				.click(function() {
 					video2commons.eventTask(this, eventName);
 				}),
 
 		appendButtons: (buttonArray, $row, type, id) => {
 			$row.append($("<td />").attr("id", `${id}-title`));
 
-			var $buttons = $("<td />")
+			const $btnGroup = $("<span />")
+				.css("white-space", "nowrap")
+				.addClass("float-end");
+
+			for (const button of buttonArray) {
+				$btnGroup.append(button);
+			}
+
+			const $buttons = $("<td />")
 				.attr("id", `${id}-status`)
 				.attr("colspan", "3")
+				.append($btnGroup)
 				.append($("<span />").attr("id", `${id}-statustext`));
-
-			if (buttonArray.length) {
-				$buttons.append(buttonArray[0]);
-			}
-
-			for (var i = 1; i < buttonArray.length; i++) {
-				$buttons.append(buttonArray[i]);
-			}
 
 			$row.append($buttons).removeClass(type[0]).addClass(type[1]);
 		},
@@ -1090,7 +1096,7 @@
 				const $reportButton = $detailsModal.find("#detailsModal-report");
 				const $closeButton = $detailsModal.find("#detailsModal-close");
 
-				if ($reportButton.hasClass("hidden")) {
+				if ($reportButton.hasClass("d-none")) {
 					$closeButton.focus();
 				} else {
 					$reportButton.focus();
@@ -1114,12 +1120,12 @@
 
 			const $reportButton = $detailsModal.find("#detailsModal-report");
 			if (reportable) {
-				$reportButton.removeClass("hidden");
+				$reportButton.removeClass("d-none");
 			} else {
-				$reportButton.addClass("hidden");
+				$reportButton.addClass("d-none");
 			}
 
-			$detailsModal.modal();
+			bootstrap.Modal.getOrCreateInstance($detailsModal[0]).show();
 		},
 
 		// Functions related to adding new tasks
@@ -1156,12 +1162,12 @@
 			$addTaskDialog.find("#dialog-spinner").hide();
 			$addTaskDialog
 				.find(".modal-body")
-				.html(`<center>${loaderImage}</center>`);
+				.html(`<div class="text-center">${loaderImage}</div>`);
 
 			video2commons.newTask(taskdata);
-			$addTaskDialog.modal({
+			bootstrap.Modal.getOrCreateInstance($addTaskDialog[0], {
 				backdrop: "static",
-			});
+			}).show();
 
 			// HACK
 			$addTaskDialog.on("shown.bs.modal", () => {
@@ -1229,7 +1235,7 @@
 					$addTaskDialog
 						.find("#url")
 						.val(newTaskData.url)
-						.on("input", function () {
+						.on("input", function() {
 							if (newTaskData.url !== $(this).val()) {
 								newTaskData.url = $(this).val();
 							}
@@ -1237,9 +1243,9 @@
 							const youtubeRegex =
 								/(https?:\/\/)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)\/(watch\?.*?(?=v=)v=|embed\/|v\/|.+\?v=)?([^&=%?]{11})/;
 							if (newTaskData.url.match(youtubeRegex)) {
-								$addTaskDialog.find("#youtube-warning").removeClass("hidden");
+								$addTaskDialog.find("#youtube-warning").removeClass("d-none");
 							} else {
-								$addTaskDialog.find("#youtube-warning").addClass("hidden");
+								$addTaskDialog.find("#youtube-warning").addClass("d-none");
 							}
 						})
 						.focus();
@@ -1266,7 +1272,7 @@
 					$allowUnlicensed.prop("checked", newTaskData.allowUnlicensed);
 					$addTaskDialog
 						.find("#license-warning")
-						.toggleClass("hidden", !newTaskData.allowUnlicensed);
+						.toggleClass("d-none", !newTaskData.allowUnlicensed);
 
 					// Perform initial selection and disabling of rows when the
 					// playlist template is first rendered.
@@ -1309,7 +1315,7 @@
 						$unlicensedRows.length > 0 && !newTaskData.allowUnlicensed,
 					);
 
-					$selectAll.off().change(function () {
+					$selectAll.off().change(function() {
 						const $videoSelect = $addTaskDialog.find(".video-select");
 						const isChecked = $(this).is(":checked");
 						$videoSelect.prop("checked", isChecked);
@@ -1318,13 +1324,13 @@
 					$addTaskDialog
 						.find("#allow-unlicensed")
 						.off()
-						.change(function () {
+						.change(function() {
 							const allowUnlicensedContent = $(this).is(":checked");
 
 							// Show the license warning if checked.
 							$addTaskDialog
 								.find("#license-warning")
-								.toggleClass("hidden", !allowUnlicensedContent);
+								.toggleClass("d-none", !allowUnlicensedContent);
 
 							// Enable all rows if checked, and disable all rows if
 							// unchecked. Update the "select all" checkbox state as
@@ -1362,7 +1368,7 @@
 					$addTaskDialog
 						.find(".btn-edit")
 						.off()
-						.click(function () {
+						.click(function() {
 							const videoIndex = $(this).data("video-index");
 
 							newTaskData.selectedVideos = form.getPlaylistData();
@@ -1411,7 +1417,7 @@
 
 					// Add validation feedback for the date category whenever
 					// the input value in the box changes.
-					$addTaskDialog.find("#dateCategory").on("input", function () {
+					$addTaskDialog.find("#dateCategory").on("input", function() {
 						const result = validateDateCategory(source, $(this).val().trim());
 						if (result.valid) {
 							$addTaskDialog.find("#dateCategoryError").hide();
@@ -1456,8 +1462,8 @@
 					const confirmForm =
 						newTaskData.type === "playlist"
 							? nunjucksEnv.render("playlistConfirmForm.html", {
-									task: newTaskData,
-								})
+								task: newTaskData,
+							})
 							: nunjucksEnv.render("confirmForm.html");
 					$addTaskDialog.find(".modal-body").html(confirmForm);
 
@@ -1521,7 +1527,7 @@
 						.click(() => {
 							video2commons.disablePrevNext(false);
 
-							$addTaskDialog.modal("hide");
+							bootstrap.Modal.getInstance($addTaskDialog[0]).hide();
 							$("#tasktable > tbody").append(
 								`<tr id="task-new"><td colspan="3">${loaderImage}</td></tr>`,
 							);

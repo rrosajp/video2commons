@@ -1,11 +1,11 @@
 <div class="modal-dialog modal-lg">
   <div class="modal-content">
     <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">&times;</button>
-      <h4>
-        <span class="glyphicon glyphicon-info-sign"></span>
+      <h5>
+        <i class="bi bi-info-circle"></i>
         <span>{{ _('details') }}</span>
-      </h4>
+      </h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
 
     <div class="modal-body">
@@ -14,23 +14,23 @@
     </div>
 
     <div class="modal-footer">
+      <button
+        id="detailsModal-close"
+        type="button"
+        class="btn"
+        data-bs-dismiss="modal"
+      >
+        {{ _('close') }}
+      </button>
       <a
         id="detailsModal-report"
         href="https://github.com/toolforge/video2commons/issues/new/choose"
         target="_blank"
         rel="noopener noreferrer"
-        class="btn btn-primary flip pull-right"
+        class="btn btn-primary"
       >
         {{ _('report') }}
       </a>
-      <button
-        id="detailsModal-close"
-        type="button"
-        class="btn flip pull-right"
-        data-dismiss="modal"
-      >
-        {{ _('close') }}
-      </button>
     </div>
   </div>
 </div>
