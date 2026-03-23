@@ -640,8 +640,85 @@
 			}),
 	};
 
+	const V2C_THEME_KEY = 'v2c-theme';
+
+	const theme = {
+		/**
+		 * Get the system/browser theme preference.
+		 *
+		 * @return {string} 'dark' or 'light'.
+		 */
+		getSystemTheme: () => {
+			return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+		},
+
+		/**
+		 * Get the user's saved theme preference (fallback to system).
+		 *
+		 * @return {string} 'dark' or 'light'.
+		 */
+		getThemePreference: () => {
+			const savedTheme = localStorage.getItem(V2C_THEME_KEY);
+			if (savedTheme == null) {
+				return theme.getSystemTheme();
+			}
+			return savedTheme;
+		},
+
+		/**
+		 * Set the user's saved theme preference.
+		 *
+		 * @param {string} targetTheme 'dark' or 'light'.
+		 */
+		setThemePreference: (targetTheme) => {
+			localStorage.setItem(V2C_THEME_KEY, targetTheme);
+		},
+
+		/**
+		 * Set the site's theme (runtime changes only).
+		 *
+		 * @param {string} targetTheme 'dark' or 'light'.
+		 */
+		setTheme: (targetTheme) => {
+			const message = targetTheme === 'dark'
+				? translate('darkMode')
+				: translate('lightMode');
+			const icon = targetTheme === 'dark' ? 'bi-moon' : 'bi-sun';
+
+			$('html').attr('data-bs-theme', targetTheme);
+
+			$('#theme-toggle').empty()
+				.append($('<i>', { class: `bi ${icon}` }))
+				.append(` ${message}`);
+		},
+
+		/**
+		 * Toggle the site's theme from dark to light or light to dark.
+		 */
+		toggleTheme: () => {
+			const currentTheme = theme.getThemePreference();
+			const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+			theme.setTheme(targetTheme);
+			theme.setThemePreference(targetTheme);
+		},
+
+		/**
+		 * Initialize the site's theme and setup the theme toggle.
+		 */
+		init: () => {
+			theme.setTheme(theme.getThemePreference());
+
+			$('#theme-toggle').on('click', () => {
+				theme.toggleTheme();
+			});
+		},
+	};
+
 	var video2commons = (window.video2commons = {
 		init: () => {
+			theme.init();
+
 			$("#content").html(htmlContent.loading);
 
 			video2commons.loadCsrf(video2commons.checkStatus);

@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="{% if lang() is rtl %}rtl{% else %}ltr{% endif %}" lang="{{ lang() }}">
 <head>
+  <script>
+    // Apply saved theme immediately to prevent flash of wrong color scheme.
+    (function() {
+      const theme = localStorage.getItem('v2c-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
+
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
   <title>video2commons</title>
 {% if lang() is rtl %}
@@ -30,11 +39,9 @@
       --v2c-color-primary: #3366cc;
       --v2c-color-primary-hover: #3056a9;
       --v2c-color-primary-active: #233566;
-
       --v2c-color-success: #099979;
       --v2c-color-success-hover: #077d63;
       --v2c-color-success-active: #066652;
-
       --v2c-color-danger: #bf3c2c;
       --v2c-color-danger-hover: #9f3526;
       --v2c-color-danger-active: #612419;
@@ -47,6 +54,42 @@
       --v2c-color-alert-warning-border: #ab7f2a;
       --v2c-color-alert-danger-bg: #ffe9e5;
       --v2c-color-alert-danger-border: #f54739;
+    }
+
+    [data-bs-theme="dark"] {
+      --bs-body-bg: #101418;
+      --bs-tertiary-bg-rgb: 32, 33, 34;
+
+      --v2c-color-text: #e0e0e0;
+      --v2c-color-navbar-border: #3a3a3a;
+
+      --v2c-color-btn-bg: #202122;
+      --v2c-color-btn-text: #c8ccd1;
+      --v2c-color-btn-hover-bg: #2a2b2d;
+      --v2c-color-btn-hover-border: #a2a9b1;
+      --v2c-color-btn-active-bg: #343536;
+      --v2c-color-btn-active-border: #c8ccd1;
+
+      --v2c-color-alert-success-bg: #1a3a2a;
+      --v2c-color-alert-success-border: #0bb88f;
+      --v2c-color-alert-info-bg: #2a2d33;
+      --v2c-color-alert-info-border: #8a8d93;
+      --v2c-color-alert-warning-bg: #3a3020;
+      --v2c-color-alert-warning-border: #c9973a;
+      --v2c-color-alert-danger-bg: #3a1a1a;
+      --v2c-color-alert-danger-border: #f76a5e;
+    }
+
+    [data-bs-theme="dark"] .table-success {
+      --bs-table-color: #fff;
+      --bs-table-bg: #1a3a2a;
+      --bs-table-border-color: #2a5a3a;
+    }
+
+    [data-bs-theme="dark"] .table-danger {
+      --bs-table-color: #fff;
+      --bs-table-bg: #3a1a1a;
+      --bs-table-border-color: #5a2a2a;
     }
 
     body {
@@ -211,6 +254,7 @@
       --bs-alert-margin-bottom: 1rem;
 
       font-size: 1.1rem;
+      margin-top: 1rem; /* There's no CSS var for this. */
     }
 
     .alert-success {
@@ -256,10 +300,26 @@
     <div class="container-fluid">
       <a class="navbar-brand" href="#">video2commons</a>
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="https://commons.wikimedia.org/w/index.php?title=Special:MyLanguage/Commons:Video2commons&amp;uselang={{ lang() }}"><i class="bi bi-book"></i> {{ _('help') }}</a></li>
-{% if loggedin %}
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> {{ _('logout') }} <bdi>({{ username }})</bdi></a></li>
-{% endif %}
+        <!-- Placeholder for theme toggle which is added dynamically. -->
+        <li class="nav-item">
+          <button id="theme-toggle" class="nav-link" type="button"></button>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://commons.wikimedia.org/w/index.php?title=Special:MyLanguage/Commons:Video2commons&amp;uselang={{ lang() }}">
+            <i class="bi bi-book"></i> {{ _('help') }}
+          </a>
+        </li>
+
+        {% if loggedin %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('logout') }}">
+              <i class="bi bi-box-arrow-right"></i>
+              {{ _('logout') }}
+              <bdi>({{ username }})</bdi>
+            </a>
+          </li>
+        {% endif %}
       </ul>
     </div>
   </nav>
