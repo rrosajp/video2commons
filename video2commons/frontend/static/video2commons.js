@@ -368,7 +368,7 @@
 		getPlaylistData: () => {
 			const selectedVideos = [];
 
-			$addTaskDialog.find(".video-select:checked").each(function() {
+			$addTaskDialog.find(".video-select:checked").each(function () {
 				const index = parseInt($(this).val(), 10);
 				const video = newTaskData.videos[index];
 				selectedVideos.push(video);
@@ -640,7 +640,7 @@
 			}),
 	};
 
-	const V2C_THEME_KEY = 'v2c-theme';
+	const V2C_THEME_KEY = "v2c-theme";
 
 	const theme = {
 		/**
@@ -649,7 +649,9 @@
 		 * @return {string} 'dark' or 'light'.
 		 */
 		getSystemTheme: () => {
-			return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+			return window.matchMedia("(prefers-color-scheme: dark)").matches
+				? "dark"
+				: "light";
 		},
 
 		/**
@@ -680,15 +682,15 @@
 		 * @param {string} targetTheme 'dark' or 'light'.
 		 */
 		setTheme: (targetTheme) => {
-			const message = targetTheme === 'dark'
-				? translate('darkMode')
-				: translate('lightMode');
-			const icon = targetTheme === 'dark' ? 'bi-moon' : 'bi-sun';
+			const message =
+				targetTheme === "dark" ? translate("darkMode") : translate("lightMode");
+			const icon = targetTheme === "dark" ? "bi-moon" : "bi-sun";
 
-			$('html').attr('data-bs-theme', targetTheme);
+			$("html").attr("data-bs-theme", targetTheme);
 
-			$('#theme-toggle').empty()
-				.append($('<i>', { class: `bi ${icon}` }))
+			$("#theme-toggle")
+				.empty()
+				.append($("<i>", { class: `bi ${icon}` }))
 				.append(` ${message}`);
 		},
 
@@ -697,7 +699,7 @@
 		 */
 		toggleTheme: () => {
 			const currentTheme = theme.getThemePreference();
-			const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+			const targetTheme = currentTheme === "dark" ? "light" : "dark";
 
 			theme.setTheme(targetTheme);
 			theme.setThemePreference(targetTheme);
@@ -709,7 +711,7 @@
 		init: () => {
 			theme.setTheme(theme.getThemePreference());
 
-			$('#theme-toggle').on('click', () => {
+			$("#theme-toggle").on("click", () => {
 				theme.toggleTheme();
 			});
 		},
@@ -769,8 +771,8 @@
 			}
 
 			var socketmatch = config.socketio_uri.match(
-				/^((?:(?:https?:)?\/\/)?[^/]+)(\/.*)$/,
-			),
+					/^((?:(?:https?:)?\/\/)?[^/]+)(\/.*)$/,
+				),
 				sockethost = socketmatch[1],
 				socketpath = socketmatch[2],
 				socket = (window.socket = io(sockethost, { path: socketpath }));
@@ -865,7 +867,7 @@
 			});
 
 			// remove extras
-			table.find("> tr").each(function() {
+			table.find("> tr").each(function () {
 				var $row = $(this),
 					id = video2commons.getTaskIDFromDOMID($row.attr("id"));
 				if (ids.indexOf(id) < 0) {
@@ -949,7 +951,7 @@
 						.find(`#${id}-restartbutton`)
 						.show()
 						.off()
-						.click(function() {
+						.click(function () {
 							video2commons.eventTask(this, "restart");
 						});
 				} else {
@@ -961,7 +963,7 @@
 						.find(`#${id}-detailsbutton`)
 						.show()
 						.off()
-						.click(function() {
+						.click(function () {
 							video2commons.openDetailsModal(val.text, {
 								reportable: val.reportable,
 							});
@@ -1032,7 +1034,12 @@
 					break;
 				}
 				case "abort":
-					video2commons.appendButtons([], $row, ["table-success", "table-danger"], id);
+					video2commons.appendButtons(
+						[],
+						$row,
+						["table-success", "table-danger"],
+						id,
+					);
 					break;
 			}
 
@@ -1042,9 +1049,7 @@
 		setProgressBar: ($item, progress) => {
 			var $bar = $item.find(".progress-bar");
 			if (progress < 0) {
-				$bar
-					.addClass("progress-bar-striped progress-bar-animated")
-					.text("");
+				$bar.addClass("progress-bar-striped progress-bar-animated").text("");
 				progress = 100;
 			} else {
 				$bar
@@ -1097,7 +1102,7 @@
 			$(htmlContent[`${eventName}button`])
 				.attr("id", `${id}-${eventName}button`)
 				.off()
-				.click(function() {
+				.click(function () {
 					video2commons.eventTask(this, eventName);
 				}),
 
@@ -1312,7 +1317,7 @@
 					$addTaskDialog
 						.find("#url")
 						.val(newTaskData.url)
-						.on("input", function() {
+						.on("input", function () {
 							if (newTaskData.url !== $(this).val()) {
 								newTaskData.url = $(this).val();
 							}
@@ -1392,7 +1397,7 @@
 						$unlicensedRows.length > 0 && !newTaskData.allowUnlicensed,
 					);
 
-					$selectAll.off().change(function() {
+					$selectAll.off().change(function () {
 						const $videoSelect = $addTaskDialog.find(".video-select");
 						const isChecked = $(this).is(":checked");
 						$videoSelect.prop("checked", isChecked);
@@ -1401,7 +1406,7 @@
 					$addTaskDialog
 						.find("#allow-unlicensed")
 						.off()
-						.change(function() {
+						.change(function () {
 							const allowUnlicensedContent = $(this).is(":checked");
 
 							// Show the license warning if checked.
@@ -1445,7 +1450,7 @@
 					$addTaskDialog
 						.find(".btn-edit")
 						.off()
-						.click(function() {
+						.click(function () {
 							const videoIndex = $(this).data("video-index");
 
 							newTaskData.selectedVideos = form.getPlaylistData();
@@ -1494,7 +1499,7 @@
 
 					// Add validation feedback for the date category whenever
 					// the input value in the box changes.
-					$addTaskDialog.find("#dateCategory").on("input", function() {
+					$addTaskDialog.find("#dateCategory").on("input", function () {
 						const result = validateDateCategory(source, $(this).val().trim());
 						if (result.valid) {
 							$addTaskDialog.find("#dateCategoryError").hide();
@@ -1539,8 +1544,8 @@
 					const confirmForm =
 						newTaskData.type === "playlist"
 							? nunjucksEnv.render("playlistConfirmForm.html", {
-								task: newTaskData,
-							})
+									task: newTaskData,
+								})
 							: nunjucksEnv.render("confirmForm.html");
 					$addTaskDialog.find(".modal-body").html(confirmForm);
 
