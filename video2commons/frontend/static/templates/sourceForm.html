@@ -1,11 +1,11 @@
 <form role="form">
   <div class="mb-3" id="src-url">
-    <label for="url"><i class="bi bi-download"></i> URL</label>
+    <label class="form-label" for="url"><i class="bi bi-download"></i> URL</label>
     <input type="text" class="form-control" id="url" placeholder="http://example.com/examplevideo" dir="ltr">
     <span class="btn fileinput-button"><i class="bi bi-folder2-open"></i> {{ _('uploadFile') }}<input id="fileupload" name="file" data-url="api/upload/upload" type="file"></span>
   </div>
   <div class="mb-3" id="src-uploading" style="display:none">
-    <label><i class="bi bi-cloud-upload"></i> {{ _('uploading') }}</label>
+    <label class="form-label"><i class="bi bi-cloud-upload"></i> {{ _('uploading') }}</label>
     <div class="progress" id="upload-progress"><div class="progress-bar" role="progressbar"></div></div>
     <span class="btn btn-danger fileinput-button" id="upload-abort"><i class="bi bi-x-lg"></i> {{ _('cancel') }}</span>
   </div>

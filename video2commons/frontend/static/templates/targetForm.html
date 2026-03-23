@@ -1,6 +1,6 @@
 <form role="form">
   <div class="mb-3">
-    <label for="filename"><i class="bi bi-upload"></i> {{ _('filename') }}</label>
+    <label class="form-label" for="filename"><i class="bi bi-upload"></i> {{ _('filename') }}</label>
     <div class="d-flex gap-2 align-items-center">
       <input type="text" class="form-control" id="filename" placeholder="Example" size="30" dir="ltr">
       <p class="form-control-plaintext target-dot">.</p>
@@ -8,19 +8,19 @@
     </div>
   </div>
   <div class="mb-3">
-    <label for="filedesc"><i class="bi bi-list-ul"></i> {{ _('filedescription') }}</label>
+    <label class="form-label" for="filedesc"><i class="bi bi-list-ul"></i> {{ _('filedescription') }}</label>
     <textarea class="form-control" rows="10" id="filedesc" dir="ltr"></textarea>
   </div>
   <div class="mb-3" id="languageCategory-group" style="display: none;">
-    <label for="languageCategory"><i class="bi bi-globe"></i> {{ _('languagecategory') }}</label>
+    <label class="form-label" for="languageCategory"><i class="bi bi-globe"></i> {{ _('languagecategory') }}</label>
     <select class="form-control" id="languageCategory" dir="ltr"></select>
   </div>
   <div class="mb-3" id="dateCategory-group">
-    <label for="dateCategory"><i class="bi bi-calendar"></i> {{ _('datecategory') }}</label>
+    <label class="form-label" for="dateCategory"><i class="bi bi-calendar"></i> {{ _('datecategory') }}</label>
     {% if source.audio and not source.video %}
-      <span class="form-text">{{ _('datecategory-help') | replace('$1', '"Audio files of YYYY"') }}</span>
+      <p class="form-text">{{ _('datecategory-help') | replace('$1', '"Audio files of YYYY"') }}</p>
     {% else %}
-      <span class="form-text">{{ _('datecategory-help') | replace('$1', '"Videos of YYYY", "Videos taken on YYYY-MM-DD"') }}</span>
+      <p class="form-text">{{ _('datecategory-help') | replace('$1', '"Videos of YYYY", "Videos taken on YYYY-MM-DD"') }}</p>
     {% endif %}
     <input type="text" class="form-control" id="dateCategory" list="dateCategoryOptions" dir="ltr">
     <datalist id="dateCategoryOptions"></datalist>
