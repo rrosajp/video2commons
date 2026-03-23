@@ -27,6 +27,7 @@
 	"report": "Op GitHub mellen",
 	"filetarget": "Zilfichiersnumm",
 	"transcoding": "Transcoding-Format",
+	"license": "Lizenz",
 	"filedescription": "Beschreiwungssäit vum Fichier",
 	"filename": "Numm vum Fichier",
 	"datecategory-error-future-year": "D'Joer däerf net an der Zukunft leien.",
