@@ -1,4 +1,4 @@
-/* globals nunjucks: false, io: false, Qs: false */
+/* globals nunjucks: false, io: false, Qs: false, bootstrap: false */
 (($) => {
 	/**
 	 * Translates a message key with optional parameters (URLs and positional).
