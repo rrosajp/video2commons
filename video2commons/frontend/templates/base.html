@@ -17,8 +17,8 @@
 {% else %}
   <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css" rel="stylesheet">
 {% endif %}
-  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/github-fork-ribbon-css/0.1.1/gh-fork-ribbon.min.css" rel="stylesheet">
+  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap-icons/1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" rel="stylesheet">
 {% block jscss %}{% endblock %}
   <style>
     :root {
@@ -145,7 +145,7 @@
       margin: 0;
     }
 
-    .github-fork-ribbon {
+    .github-fork-ribbon::before {
       background-color: var(--v2c-color-ribbon-bg);
     }
 
@@ -333,10 +333,6 @@
   <div class="container" id="content">
     {% block content %}{% endblock %}
   </div>
-  <div class="github-fork-ribbon-wrapper {% if lang() is rtl %}left{% else %}right{% endif %}-bottom">
-    <div class="github-fork-ribbon">
-       <a href="https://github.com/toolforge/video2commons">{{ _('forkOnGitHub') }}</a>
-    </div>
-  </div>
+  <a class="github-fork-ribbon fixed {% if lang() is rtl %}left{% else %}right{% endif %}-bottom" href="https://github.com/toolforge/video2commons" data-ribbon="{{ _('forkOnGitHub') }}" title="{{ _('forkOnGitHub') }}">{{ _('forkOnGitHub') }}</a>
 </body>
 </html>
