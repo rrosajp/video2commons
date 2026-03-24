@@ -110,14 +110,14 @@
 	var config = window.config,
 		i18n = window.i18n,
 		loaderImage =
-			'<img alt="File:Ajax-loader.gif" src="//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif" data-file-width="32" data-file-height="32" height="32" width="32">',
+			'<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>',
 		rtl = i18n["@dir"] === "rtl",
 		htmlContent = {
 			abortbutton: `<button type="button" class="btn btn-danger btn-xs"><i class="bi bi-x-lg"></i> ${nunjucks.lib.escape(i18n.abort)}</button>`,
 			removebutton: `<button type="button" class="btn btn-danger btn-xs remove-btn"><i class="bi bi-trash"></i> ${nunjucks.lib.escape(i18n.remove)}</button>`,
 			restartbutton: `<button type="button" class="btn btn-xs restart-btn"><i class="bi bi-arrow-repeat"></i> ${nunjucks.lib.escape(i18n.restart)}</button>`,
 			detailsbutton: `<button type="button" class="btn btn-xs details-btn"><i class="bi bi-info-circle"></i> ${nunjucks.lib.escape(i18n.details)}</button>`,
-			loading: `<div class="text-center">${loaderImage}&nbsp;&nbsp;${nunjucks.lib.escape(i18n.loading)}</div>`,
+			loading: `<div class="text-center d-flex align-items-center justify-content-center mt-3 gap-1">${loaderImage}&nbsp;&nbsp;${nunjucks.lib.escape(i18n.loading)}</div>`,
 			errorDisconnect: `<div class="alert alert-danger">${nunjucks.lib.escape(i18n.errorDisconnect)}</div>`,
 			yourTasks: `<h4 class="my-3">${nunjucks.lib.escape(i18n.yourTasks)}</h4><table id="tasktable" class="table table-bordered mb-0"><colgroup><col style="width: 20%;"/><col style="width: 10%;"/><col style="width: 40%;"/><col style="width: 30%;"/></colgroup><tbody></tbody></table>`,
 			workers: `<h4 class="my-3">${nunjucks.lib.escape(i18n.workers)}</h4>`,
