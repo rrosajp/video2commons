@@ -50,6 +50,11 @@ jobs:
       - name: Setup Biome
         uses: biomejs/setup-biome@v2.7.0
 
+      - name: Remove broken symlinks
+        run: |
+          rm -f video2commons/frontend/static/ssu
+          rm -f video2commons/frontend/static/uploads
+
       - name: Run Biome
         run: biome ci .
 

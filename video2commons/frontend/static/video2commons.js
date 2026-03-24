@@ -143,7 +143,7 @@
 			.addGlobal("_", translate)
 			.addFilter("process_link", processLink);
 
-	var $detailsModal, $addTaskDialog, newTaskData, newTaskDataQS, username;
+	var $detailsModal, $addTaskDialog, newTaskData, newTaskDataQS;
 
 	/**
 	 * Validate date category names.
@@ -855,8 +855,6 @@
 		},
 
 		populateResults: (data) => {
-			username = data.username;
-
 			var table = $("#tasktable > tbody"),
 				ids = [];
 
@@ -963,7 +961,7 @@
 						.find(`#${id}-detailsbutton`)
 						.show()
 						.off()
-						.click(function () {
+						.click(() => {
 							video2commons.openDetailsModal(val.text, {
 								reportable: val.reportable,
 							});

@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "start": "npm install && node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "biome ci",
+    "format": "biome format --write"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
