@@ -44,7 +44,7 @@ redisSubscription.on("error", (err) =>
 
 /* ===== HTTP / Socket.io Request Handling ===== */
 
-app.all("*", (_req, res) => {
+app.all("/*splat", (_req, res) => {
 	res.redirect(config.webfrontend_uri);
 });
 

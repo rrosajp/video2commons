@@ -1,15 +1,15 @@
-<div class="modal-dialog modal-lg">
+<div class="modal-dialog modal-xl">
   <div class="modal-content">
     <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">&times;</button>
-      <h4><span class="glyphicon glyphicon-plus"></span> {{ _('addTask') }}</h4>
+      <h5><i class="bi bi-plus-lg"></i> {{ _('addTask') }}</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body" style="padding:40px 50px;"></div>
     <div class="modal-footer">
-      <button type="button" class="btn flip pull-left" id="btn-cancel" data-dismiss="modal"></span> {{ _('cancel') }}</button>
-      <button type="submit" class="btn btn-primary flip pull-right" id="btn-next">{{ _('next') }} <span class="glyphicon glyphicon-chevron-right"></span></button>
-      <button type="button" class="btn flip pull-right disabled" id="btn-prev"><span class="glyphicon glyphicon-chevron-left"></span> {{ _('back') }}</button>
-      <img class="pull-right" alt="File:Ajax-loader.gif" src="//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif" data-file-width="32" data-file-height="32" height="32" width="32" id="dialog-spinner">
+      <button type="button" class="btn me-auto" id="btn-cancel" data-bs-dismiss="modal">{{ _('cancel') }}</button>
+      <div id="dialog-spinner" class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+      <button type="button" class="btn disabled" id="btn-prev"><i class="bi bi-chevron-left"></i> {{ _('back') }}</button>
+      <button type="submit" class="btn btn-primary" id="btn-next">{{ _('next') }} <i class="bi bi-chevron-right"></i></button>
     </div>
   </div>
 </div>

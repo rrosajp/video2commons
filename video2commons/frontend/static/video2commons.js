@@ -1,4 +1,4 @@
-/* globals nunjucks: false, io: false, Qs: false */
+/* globals nunjucks: false, io: false, Qs: false, bootstrap: false */
 (($) => {
 	/**
 	 * Translates a message key with optional parameters (URLs and positional).
@@ -110,17 +110,17 @@
 	var config = window.config,
 		i18n = window.i18n,
 		loaderImage =
-			'<img alt="File:Ajax-loader.gif" src="//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif" data-file-width="32" data-file-height="32" height="32" width="32">',
+			'<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>',
 		rtl = i18n["@dir"] === "rtl",
 		htmlContent = {
-			abortbutton: `<button type="button" class="btn btn-danger btn-xs flip pull-right"><span class="glyphicon glyphicon-remove"></span> ${nunjucks.lib.escape(i18n.abort)}</button>`,
-			removebutton: `<button type="button" class="btn btn-danger btn-xs flip pull-right remove-btn"><span class="glyphicon glyphicon-trash"></span> ${nunjucks.lib.escape(i18n.remove)}</button>`,
-			restartbutton: `<button type="button" class="btn btn-xs flip pull-right restart-btn"><span class="glyphicon glyphicon-repeat"></span> ${nunjucks.lib.escape(i18n.restart)}</button>`,
-			detailsbutton: `<button type="button" class="btn btn-xs flip pull-right details-btn"><span class="glyphicon glyphicon-info-sign"></span> ${nunjucks.lib.escape(i18n.details)}</button>`,
-			loading: `<center>${loaderImage}&nbsp;&nbsp;${nunjucks.lib.escape(i18n.loading)}</center>`,
+			abortbutton: `<button type="button" class="btn btn-danger btn-xs"><i class="bi bi-x-lg"></i> ${nunjucks.lib.escape(i18n.abort)}</button>`,
+			removebutton: `<button type="button" class="btn btn-danger btn-xs remove-btn"><i class="bi bi-trash"></i> ${nunjucks.lib.escape(i18n.remove)}</button>`,
+			restartbutton: `<button type="button" class="btn btn-xs restart-btn"><i class="bi bi-arrow-repeat"></i> ${nunjucks.lib.escape(i18n.restart)}</button>`,
+			detailsbutton: `<button type="button" class="btn btn-xs details-btn"><i class="bi bi-info-circle"></i> ${nunjucks.lib.escape(i18n.details)}</button>`,
+			loading: `<div class="text-center d-flex align-items-center justify-content-center mt-3 gap-1">${loaderImage}&nbsp;&nbsp;${nunjucks.lib.escape(i18n.loading)}</div>`,
 			errorDisconnect: `<div class="alert alert-danger">${nunjucks.lib.escape(i18n.errorDisconnect)}</div>`,
-			yourTasks: `<h4>${nunjucks.lib.escape(i18n.yourTasks)}</h4><table id="tasktable" class="table"><colgroup><col style="width: 20%;"/><col style="width: 10%;"/><col style="width: 40%;"/><col style="width: 30%;"/></colgroup><tbody></tbody></table>`,
-			workers: `<h4>${nunjucks.lib.escape(i18n.workers)}</h4>`,
+			yourTasks: `<h4 class="my-3">${nunjucks.lib.escape(i18n.yourTasks)}</h4><table id="tasktable" class="table table-bordered mb-0"><colgroup><col style="width: 20%;"/><col style="width: 10%;"/><col style="width: 40%;"/><col style="width: 30%;"/></colgroup><tbody></tbody></table>`,
+			workers: `<h4 class="my-3">${nunjucks.lib.escape(i18n.workers)}</h4>`,
 			capacity: rtl
 				? `<div><span id="capacity">...</span> ${i18n.capacity}</div>`
 				: `<div>${i18n.capacity} <span id="capacity">...</span></div>`,
@@ -130,11 +130,11 @@
 			pending: rtl
 				? `<div><span id="pending">...</span> ${i18n.pending}</div>`
 				: `<div>${i18n.pending} <span id="pending">...</span></div>`,
-			addTask: `<input class="btn btn-primary btn-md" type="button" accesskey="n" value="${nunjucks.lib.escape(i18n.addTask)}">`,
+			addTask: `<input class="btn btn-primary my-3" type="button" accesskey="n" value="${nunjucks.lib.escape(i18n.addTask)}">`,
 			progressbar:
 				'<div class="progress"><div class="progress-bar" role="progressbar"></div></div>',
-			prevbutton: `<span class="glyphicon glyphicon-chevron-${rtl ? "right" : "left"}"></span> ${nunjucks.lib.escape(i18n.back)}`,
-			nextbutton: `${nunjucks.lib.escape(i18n.next)} <span class="glyphicon glyphicon-chevron-${rtl ? "left" : "right"}"></span>`,
+			prevbutton: `<i class="bi bi-chevron-${rtl ? "right" : "left"}"></i> ${nunjucks.lib.escape(i18n.back)}`,
+			nextbutton: `${nunjucks.lib.escape(i18n.next)} <i class="bi bi-chevron-${rtl ? "left" : "right"}"></i>`,
 			confirmbutton: nunjucks.lib.escape(i18n.confirm),
 		},
 		csrfToken = "",
@@ -143,7 +143,7 @@
 			.addGlobal("_", translate)
 			.addFilter("process_link", processLink);
 
-	var $detailsModal, $addTaskDialog, newTaskData, newTaskDataQS, username;
+	var $detailsModal, $addTaskDialog, newTaskData, newTaskDataQS;
 
 	/**
 	 * Validate date category names.
@@ -640,8 +640,87 @@
 			}),
 	};
 
+	const V2C_THEME_KEY = "v2c-theme";
+
+	const theme = {
+		/**
+		 * Get the system/browser theme preference.
+		 *
+		 * @return {string} 'dark' or 'light'.
+		 */
+		getSystemTheme: () => {
+			return window.matchMedia("(prefers-color-scheme: dark)").matches
+				? "dark"
+				: "light";
+		},
+
+		/**
+		 * Get the user's saved theme preference (fallback to system).
+		 *
+		 * @return {string} 'dark' or 'light'.
+		 */
+		getThemePreference: () => {
+			const savedTheme = localStorage.getItem(V2C_THEME_KEY);
+			if (savedTheme == null) {
+				return theme.getSystemTheme();
+			}
+			return savedTheme;
+		},
+
+		/**
+		 * Set the user's saved theme preference.
+		 *
+		 * @param {string} targetTheme 'dark' or 'light'.
+		 */
+		setThemePreference: (targetTheme) => {
+			localStorage.setItem(V2C_THEME_KEY, targetTheme);
+		},
+
+		/**
+		 * Set the site's theme (runtime changes only).
+		 *
+		 * @param {string} targetTheme 'dark' or 'light'.
+		 */
+		setTheme: (targetTheme) => {
+			const message =
+				targetTheme === "dark" ? translate("darkMode") : translate("lightMode");
+			const icon = targetTheme === "dark" ? "bi-moon" : "bi-sun";
+
+			$("html").attr("data-bs-theme", targetTheme);
+
+			$("#theme-toggle")
+				.empty()
+				.append($("<i>", { class: `bi ${icon}` }))
+				.append(` ${message}`);
+		},
+
+		/**
+		 * Toggle the site's theme from dark to light or light to dark.
+		 */
+		toggleTheme: () => {
+			const currentTheme = theme.getThemePreference();
+			const targetTheme = currentTheme === "dark" ? "light" : "dark";
+
+			theme.setTheme(targetTheme);
+			theme.setThemePreference(targetTheme);
+		},
+
+		/**
+		 * Initialize the site's theme and setup the theme toggle.
+		 */
+		init: () => {
+			theme.setTheme(theme.getThemePreference());
+
+			$("#theme-toggle").on("click", () => {
+				theme.toggleTheme();
+			});
+		},
+	};
+
 	var video2commons = (window.video2commons = {
 		init: () => {
+			theme.init();
+
 			$("#content").html(htmlContent.loading);
 
 			video2commons.loadCsrf(video2commons.checkStatus);
@@ -662,9 +741,11 @@
 				});
 			} else if (window.location.search.slice(1)) {
 				newTaskDataQS = Qs.parse(window.location.search.slice(1));
-				video2commons.addTask({
-					url: newTaskDataQS.url,
-				});
+				if (newTaskDataQS.url) {
+					video2commons.addTask({
+						url: newTaskDataQS.url,
+					});
+				}
 			}
 		},
 
@@ -774,8 +855,6 @@
 		},
 
 		populateResults: (data) => {
-			username = data.username;
-
 			var table = $("#tasktable > tbody"),
 				ids = [];
 
@@ -882,7 +961,7 @@
 						.find(`#${id}-detailsbutton`)
 						.show()
 						.off()
-						.click(function () {
+						.click(() => {
 							video2commons.openDetailsModal(val.text, {
 								reportable: val.reportable,
 							});
@@ -914,20 +993,24 @@
 								.append($("<span />").attr("id", `${id}-statustext`)),
 						)
 						.append($("<td />").attr("id", `${id}-progress`));
-					var $abortbutton = video2commons.eventButton(id, "abort");
-					$row.find(`#${id}-status`).append($abortbutton);
-					var progressbar = $row
+					const $abortbutton = video2commons.eventButton(id, "abort");
+					const $btnGroup = $("<span />")
+						.css("white-space", "nowrap")
+						.addClass("float-end")
+						.append($abortbutton);
+					$row.find(`#${id}-status`).append($btnGroup);
+					const progressbar = $row
 						.find(`#${id}-progress`)
 						.html(htmlContent.progressbar);
 					video2commons.setProgressBar(progressbar, -1);
-					$row.removeClass("success danger");
+					$row.removeClass("table-success table-danger");
 					break;
 				}
 				case "done":
 					video2commons.appendButtons(
 						[video2commons.eventButton(id, "remove")],
 						$row,
-						["danger", "success"],
+						["table-danger", "table-success"],
 						id,
 					);
 					break;
@@ -941,15 +1024,20 @@
 						.hide();
 
 					video2commons.appendButtons(
-						[$removebutton, $restartbutton, $detailsbutton],
+						[$restartbutton, $detailsbutton, $removebutton],
 						$row,
-						["success", "danger"],
+						["table-success", "table-danger"],
 						id,
 					);
 					break;
 				}
 				case "abort":
-					video2commons.appendButtons([], $row, ["success", "danger"], id);
+					video2commons.appendButtons(
+						[],
+						$row,
+						["table-success", "table-danger"],
+						id,
+					);
 					break;
 			}
 
@@ -959,14 +1047,11 @@
 		setProgressBar: ($item, progress) => {
 			var $bar = $item.find(".progress-bar");
 			if (progress < 0) {
-				$bar
-					.addClass("progress-bar-striped active")
-					.addClass("active")
-					.text("");
+				$bar.addClass("progress-bar-striped progress-bar-animated").text("");
 				progress = 100;
 			} else {
 				$bar
-					.removeClass("progress-bar-striped active")
+					.removeClass("progress-bar-striped progress-bar-animated")
 					.text(`${Math.round(progress)}%`);
 			}
 
@@ -1022,18 +1107,19 @@
 		appendButtons: (buttonArray, $row, type, id) => {
 			$row.append($("<td />").attr("id", `${id}-title`));
 
-			var $buttons = $("<td />")
+			const $btnGroup = $("<span />")
+				.css("white-space", "nowrap")
+				.addClass("float-end");
+
+			for (const button of buttonArray) {
+				$btnGroup.append(button);
+			}
+
+			const $buttons = $("<td />")
 				.attr("id", `${id}-status`)
 				.attr("colspan", "3")
+				.append($btnGroup)
 				.append($("<span />").attr("id", `${id}-statustext`));
-
-			if (buttonArray.length) {
-				$buttons.append(buttonArray[0]);
-			}
-
-			for (var i = 1; i < buttonArray.length; i++) {
-				$buttons.append(buttonArray[i]);
-			}
 
 			$row.append($buttons).removeClass(type[0]).addClass(type[1]);
 		},
@@ -1090,7 +1176,7 @@
 				const $reportButton = $detailsModal.find("#detailsModal-report");
 				const $closeButton = $detailsModal.find("#detailsModal-close");
 
-				if ($reportButton.hasClass("hidden")) {
+				if ($reportButton.hasClass("d-none")) {
 					$closeButton.focus();
 				} else {
 					$reportButton.focus();
@@ -1114,12 +1200,12 @@
 
 			const $reportButton = $detailsModal.find("#detailsModal-report");
 			if (reportable) {
-				$reportButton.removeClass("hidden");
+				$reportButton.removeClass("d-none");
 			} else {
-				$reportButton.addClass("hidden");
+				$reportButton.addClass("d-none");
 			}
 
-			$detailsModal.modal();
+			bootstrap.Modal.getOrCreateInstance($detailsModal[0]).show();
 		},
 
 		// Functions related to adding new tasks
@@ -1156,12 +1242,12 @@
 			$addTaskDialog.find("#dialog-spinner").hide();
 			$addTaskDialog
 				.find(".modal-body")
-				.html(`<center>${loaderImage}</center>`);
+				.html(`<div class="text-center">${loaderImage}</div>`);
 
 			video2commons.newTask(taskdata);
-			$addTaskDialog.modal({
+			bootstrap.Modal.getOrCreateInstance($addTaskDialog[0], {
 				backdrop: "static",
-			});
+			}).show();
 
 			// HACK
 			$addTaskDialog.on("shown.bs.modal", () => {
@@ -1237,9 +1323,9 @@
 							const youtubeRegex =
 								/(https?:\/\/)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)\/(watch\?.*?(?=v=)v=|embed\/|v\/|.+\?v=)?([^&=%?]{11})/;
 							if (newTaskData.url.match(youtubeRegex)) {
-								$addTaskDialog.find("#youtube-warning").removeClass("hidden");
+								$addTaskDialog.find("#youtube-warning").removeClass("d-none");
 							} else {
-								$addTaskDialog.find("#youtube-warning").addClass("hidden");
+								$addTaskDialog.find("#youtube-warning").addClass("d-none");
 							}
 						})
 						.focus();
@@ -1266,7 +1352,7 @@
 					$allowUnlicensed.prop("checked", newTaskData.allowUnlicensed);
 					$addTaskDialog
 						.find("#license-warning")
-						.toggleClass("hidden", !newTaskData.allowUnlicensed);
+						.toggleClass("d-none", !newTaskData.allowUnlicensed);
 
 					// Perform initial selection and disabling of rows when the
 					// playlist template is first rendered.
@@ -1324,7 +1410,7 @@
 							// Show the license warning if checked.
 							$addTaskDialog
 								.find("#license-warning")
-								.toggleClass("hidden", !allowUnlicensedContent);
+								.toggleClass("d-none", !allowUnlicensedContent);
 
 							// Enable all rows if checked, and disable all rows if
 							// unchecked. Update the "select all" checkbox state as
@@ -1521,7 +1607,7 @@
 						.click(() => {
 							video2commons.disablePrevNext(false);
 
-							$addTaskDialog.modal("hide");
+							bootstrap.Modal.getInstance($addTaskDialog[0]).hide();
 							$("#tasktable > tbody").append(
 								`<tr id="task-new"><td colspan="3">${loaderImage}</td></tr>`,
 							);

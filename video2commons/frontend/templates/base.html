@@ -1,18 +1,109 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="{% if lang() is rtl %}rtl{% else %}ltr{% endif %}" lang="{{ lang() }}">
 <head>
+  <script>
+    // Apply saved theme immediately to prevent flash of wrong color scheme.
+    (function() {
+      const theme = localStorage.getItem('v2c-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
+
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
   <title>video2commons</title>
-  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
 {% if lang() is rtl %}
-  <!--<link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap-rtl/3.1.2/css/bootstrap-rtl.min.css" rel="stylesheet">-->
-  <link href="static/externals/bootstrap-rtl.min.css" rel="stylesheet">
+  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.8/css/bootstrap.rtl.min.css" rel="stylesheet">
+{% else %}
+  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css" rel="stylesheet">
 {% endif %}
-  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/github-fork-ribbon-css/0.1.1/gh-fork-ribbon.min.css" rel="stylesheet">
+  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap-icons/1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" rel="stylesheet">
 {% block jscss %}{% endblock %}
   <style>
+    :root {
+      --v2c-color-text: #202122;
+      --v2c-color-text-subtle: #afafaf;
+      --v2c-color-text-on-color: #fff;
+      --v2c-color-ribbon-bg: #333;
+      --v2c-color-navbar-border: #c8ccd1;
+
+      --v2c-color-btn-bg: #f8f9fa;
+      --v2c-color-btn-border: #72777d;
+      --v2c-color-btn-text: var(--v2c-color-text);
+      --v2c-color-btn-hover-bg: #eaecf0;
+      --v2c-color-btn-hover-border: #27292d;
+      --v2c-color-btn-active-bg: #dadde3;
+      --v2c-color-btn-active-border: #202122;
+
+      --v2c-color-primary: #3366cc;
+      --v2c-color-primary-hover: #3056a9;
+      --v2c-color-primary-active: #233566;
+      --v2c-color-success: #099979;
+      --v2c-color-success-hover: #077d63;
+      --v2c-color-success-active: #066652;
+      --v2c-color-danger: #bf3c2c;
+      --v2c-color-danger-hover: #9f3526;
+      --v2c-color-danger-active: #612419;
+
+      --v2c-color-alert-success-bg: #dff2eb;
+      --v2c-color-alert-success-border: #099979;
+      --v2c-color-alert-info-bg: #eaecf0;
+      --v2c-color-alert-info-border: #72777d;
+      --v2c-color-alert-warning-bg: #fdf2d5;
+      --v2c-color-alert-warning-border: #ab7f2a;
+      --v2c-color-alert-danger-bg: #ffe9e5;
+      --v2c-color-alert-danger-border: #f54739;
+    }
+
+    [data-bs-theme="dark"] {
+      --bs-body-bg: #101418;
+      --bs-tertiary-bg-rgb: 32, 33, 34;
+
+      --v2c-color-text: #e0e0e0;
+      --v2c-color-navbar-border: #3a3a3a;
+
+      --v2c-color-btn-bg: #202122;
+      --v2c-color-btn-text: #c8ccd1;
+      --v2c-color-btn-hover-bg: #2a2b2d;
+      --v2c-color-btn-hover-border: #a2a9b1;
+      --v2c-color-btn-active-bg: #343536;
+      --v2c-color-btn-active-border: #c8ccd1;
+
+      --v2c-color-alert-success-bg: #1a3a2a;
+      --v2c-color-alert-success-border: #0bb88f;
+      --v2c-color-alert-info-bg: #2a2d33;
+      --v2c-color-alert-info-border: #8a8d93;
+      --v2c-color-alert-warning-bg: #3a3020;
+      --v2c-color-alert-warning-border: #c9973a;
+      --v2c-color-alert-danger-bg: #3a1a1a;
+      --v2c-color-alert-danger-border: #f76a5e;
+    }
+
+    [data-bs-theme="dark"] .table-success {
+      --bs-table-color: #fff;
+      --bs-table-bg: #1a3a2a;
+      --bs-table-border-color: #2a5a3a;
+    }
+
+    [data-bs-theme="dark"] .table-danger {
+      --bs-table-color: #fff;
+      --bs-table-bg: #3a1a1a;
+      --bs-table-border-color: #5a2a2a;
+    }
+
     body {
       padding-top: 60px;
+    }
+
+    .navbar {
+      border-bottom: 1px solid var(--v2c-color-navbar-border);
+    }
+
+    #dialog-spinner {
+      width: 24px;
+      height: 24px;
+      margin-inline-end: 12px;
     }
 
     #dialog-errorbox {
@@ -35,7 +126,7 @@
     }
 
     #playlist-table .disabled {
-      color: #afafaf;
+      color: var(--v2c-color-text-subtle);
     }
 
     #license-warning {
@@ -54,133 +145,194 @@
       margin: 0;
     }
 
-    .github-fork-ribbon {
-      background-color: #333;
+    .github-fork-ribbon::before {
+      background-color: var(--v2c-color-ribbon-bg);
     }
 
     .fileinput-button {
       margin-top: 8px;
     }
 
+    .target-dot {
+      width: auto;
+    }
+
     .restart-btn {
-      margin-right: 8px;
+      margin-inline-end: 8px;
     }
 
     .details-btn {
-      margin-right: 8px;
+      margin-inline-end: 8px;
     }
 
     /* Codex-esque style overrides to conform closer to the style guide. */
     .btn {
-      background-color: #f8f9fa;
-      border-color: #72777d;
-      color: #202122;
-      border-radius: 0;
-      font-weight: bold;
+      --bs-btn-bg: var(--v2c-color-btn-bg);
+      --bs-btn-border-color: var(--v2c-color-btn-border);
+      --bs-btn-color: var(--v2c-color-btn-text);
+      --bs-btn-hover-bg: var(--v2c-color-btn-hover-bg);
+      --bs-btn-hover-border-color: var(--v2c-color-btn-hover-border);
+      --bs-btn-hover-color: var(--v2c-color-btn-text);
+      --bs-btn-active-bg: var(--v2c-color-btn-active-bg);
+      --bs-btn-active-border-color: var(--v2c-color-btn-active-border);
+      --bs-btn-active-color: var(--v2c-color-btn-text);
+      --bs-btn-border-radius: 2px;
+      --bs-btn-font-weight: bold;
+      --bs-btn-font-size: 0.875rem;
+      --bs-btn-line-height: 1.5rem;
+      --bs-btn-padding-x: 12px;
+      --bs-btn-padding-y: 2px;
+
       height: 32px;
     }
 
+    .btn-lg {
+      --bs-btn-padding-x: 1rem;
+      --bs-btn-padding-y: 0.5rem;
+      --bs-btn-font-size: 1.25rem;
+
+      height: auto;
+    }
+
     .btn-xs {
+      --bs-btn-padding-x: 8px;
+      --bs-btn-padding-y: 1px;
+      --bs-btn-font-size: 0.75rem;
+      --bs-btn-line-height: 1.15rem;
+
       height: 24px;
     }
 
     .btn-primary {
-      background-color: #3366cc;
-      border-color: #3366cc;
-      color: #fff;
-    }
-
-    .btn-primary:hover, .btn-primary:active, .btn-primary:focus {
-      color: #fff;
+      --bs-btn-bg: var(--v2c-color-primary);
+      --bs-btn-border-color: var(--v2c-color-primary);
+      --bs-btn-color: var(--v2c-color-text-on-color);
+      --bs-btn-hover-bg: var(--v2c-color-primary-hover);
+      --bs-btn-hover-border-color: var(--v2c-color-primary-hover);
+      --bs-btn-hover-color: var(--v2c-color-text-on-color);
+      --bs-btn-active-bg: var(--v2c-color-primary-active);
+      --bs-btn-active-border-color: var(--v2c-color-primary-active);
+      --bs-btn-active-color: var(--v2c-color-text-on-color);
     }
 
     .btn-success {
-      background-color: #099979;
-      border-color: #099979;
-      color: #fff;
-    }
-
-    .btn-success:hover, .btn-success:active, .btn-success:focus {
-      color: #fff;
+      --bs-btn-bg: var(--v2c-color-success);
+      --bs-btn-border-color: var(--v2c-color-success);
+      --bs-btn-color: var(--v2c-color-text-on-color);
+      --bs-btn-hover-bg: var(--v2c-color-success-hover);
+      --bs-btn-hover-border-color: var(--v2c-color-success-hover);
+      --bs-btn-hover-color: var(--v2c-color-text-on-color);
+      --bs-btn-active-bg: var(--v2c-color-success-active);
+      --bs-btn-active-border-color: var(--v2c-color-success-active);
+      --bs-btn-active-color: var(--v2c-color-text-on-color);
     }
 
     .btn-danger {
-      background-color: #bf3c2c;
-      border-color: #bf3c2c;
-      color: #fff;
-    }
-
-    .btn-danger:hover, .btn-danger:active, .btn-danger:focus {
-      color: #fff;
+      --bs-btn-bg: var(--v2c-color-danger);
+      --bs-btn-border-color: var(--v2c-color-danger);
+      --bs-btn-color: var(--v2c-color-text-on-color);
+      --bs-btn-hover-bg: var(--v2c-color-danger-hover);
+      --bs-btn-hover-border-color: var(--v2c-color-danger-hover);
+      --bs-btn-hover-color: var(--v2c-color-text-on-color);
+      --bs-btn-active-bg: var(--v2c-color-danger-active);
+      --bs-btn-active-border-color: var(--v2c-color-danger-active);
+      --bs-btn-active-color: var(--v2c-color-text-on-color);
     }
 
     .btn-edit {
+      --bs-btn-bg: transparent;
+      --bs-btn-border-color: transparent;
+      --bs-btn-hover-bg: transparent;
+      --bs-btn-hover-border-color: transparent;
+      --bs-btn-active-bg: transparent;
+      --bs-btn-active-border-color: transparent;
+
       width: fit-content;
       height: fit-content;
-      border: none;
-      background: transparent;
     }
 
-    .btn-edit > .glyphicon {
+    .btn-edit > .bi {
       display: block;
     }
 
-    .btn-login {
-      height: 48px;
-    }
-
     .alert {
-      border-radius: 0;
-      font-size: 1.1em;
+      --bs-alert-border-radius: 0;
+      --bs-alert-margin-bottom: 1rem;
+
+      font-size: 1.1rem;
+      margin-top: 1rem; /* There's no CSS var for this. */
     }
 
     .alert-success {
-      background-color: #dff2eb;
-      border-color: #099979;
-      color: #202122;
+      --bs-alert-bg: var(--v2c-color-alert-success-bg);
+      --bs-alert-border-color: var(--v2c-color-alert-success-border);
+      --bs-alert-color: var(--v2c-color-text);
     }
 
     .alert-info {
-      background-color: #eaecf0;
-      border-color: #72777d;
-      color: #202122;
+      --bs-alert-bg: var(--v2c-color-alert-info-bg);
+      --bs-alert-border-color: var(--v2c-color-alert-info-border);
+      --bs-alert-color: var(--v2c-color-text);
     }
 
     .alert-warning {
-      background-color: #fdf2d5;
-      border-color: #ab7f2a;
-      color: #202122;
+      --bs-alert-bg: var(--v2c-color-alert-warning-bg);
+      --bs-alert-border-color: var(--v2c-color-alert-warning-border);
+      --bs-alert-color: var(--v2c-color-text);
     }
 
     .alert-danger {
-      background-color: #ffe9e5;
-      border-color: #f54739;
-      color: #202122;
+      --bs-alert-bg: var(--v2c-color-alert-danger-bg);
+      --bs-alert-border-color: var(--v2c-color-alert-danger-border);
+      --bs-alert-color: var(--v2c-color-text);
+    }
+
+    .modal-header h1,
+    .modal-header h2,
+    .modal-header h3,
+    .modal-header h4,
+    .modal-header h5,
+    .modal-header h6 {
+      margin-bottom: 0;
+    }
+
+    .modal-header .bi {
+      margin-inline-end: 4px;
     }
   </style>
 </head>
 <body>
-  <div class="navbar navbar-default navbar-fixed-top">
-   <div class="container-fluid">
-      <div class="navbar-header">
-        <a class="navbar-brand" href="#">video2commons</a>
-      </div>
-        <ul class="nav navbar-nav navbar-{% if lang() is rtl %}left{% else %}right{% endif %}">
-          <li><a href="https://commons.wikimedia.org/w/index.php?title=Special:MyLanguage/Commons:Video2commons&amp;uselang={{ lang() }}"><span class="glyphicon glyphicon-book"></span> {{ _('help') }}</a></li>
-{% if loggedin %}
-          <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-log-out"></span> {{ _('logout') }} <bdi>({{ username }})</bdi></a></li>
-{% endif %}
-        </ul>
+  <nav class="navbar navbar-expand fixed-top bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">video2commons</a>
+      <ul class="navbar-nav ms-auto">
+        <!-- Placeholder for theme toggle which is added dynamically. -->
+        <li class="nav-item">
+          <button id="theme-toggle" class="nav-link" type="button"></button>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://commons.wikimedia.org/w/index.php?title=Special:MyLanguage/Commons:Video2commons&amp;uselang={{ lang() }}">
+            <i class="bi bi-book"></i> {{ _('help') }}
+          </a>
+        </li>
+
+        {% if loggedin %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('logout') }}">
+              <i class="bi bi-box-arrow-right"></i>
+              {{ _('logout') }}
+              <bdi>({{ username }})</bdi>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
     </div>
-  </div>
+  </nav>
 
   <div class="container" id="content">
     {% block content %}{% endblock %}
   </div>
-  <div class="github-fork-ribbon-wrapper {% if lang() is rtl %}left{% else %}right{% endif %}-bottom">
-    <div class="github-fork-ribbon">
-       <a href="https://github.com/toolforge/video2commons">{{ _('forkOnGitHub') }}</a>
-    </div>
-  </div>
+  <a class="github-fork-ribbon fixed {% if lang() is rtl %}left{% else %}right{% endif %}-bottom" href="https://github.com/toolforge/video2commons" data-ribbon="{{ _('forkOnGitHub') }}" title="{{ _('forkOnGitHub') }}">{{ _('forkOnGitHub') }}</a>
 </body>
 </html>
