@@ -27,7 +27,6 @@ import os
 import pywikibot
 
 from pywikibot.exceptions import (
-    ApiNotAvailableError,
     FatalServerError,
     ServerError,
     TimeoutError,
@@ -130,7 +129,7 @@ def upload(
             break  # The upload completed successfully.
         except (FatalServerError, TaskError):
             raise  # These will not be corrected by resending.
-        except (ServerError, TimeoutError, ApiNotAvailableError):
+        except (ServerError, TimeoutError):
             # These errors are possibly transient, so retry them.
             remaining_tries -= 1
             if remaining_tries == 0:
