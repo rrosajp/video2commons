@@ -8,6 +8,8 @@
 	"loginOnCommons": "Vikianbar ilə daxil ol",
 	"logout": "Çıxış",
 	"help": "Kömək",
+	"darkMode": "Gecə",
+	"lightMode": "Gündüz",
 	"forkOnGitHub": "Githubda dəstəklə",
 	"JavascriptRequired": "Bu alətdən istifadə etmək üçün JavaScript tələb olunur!",
 	"abort": "İmtina",

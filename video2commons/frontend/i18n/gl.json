@@ -8,6 +8,8 @@
 	"loginOnCommons": "Iniciar sesión en Wikimedia Commons",
 	"logout": "Saír",
 	"help": "Axuda",
+	"darkMode": "Escuro",
+	"lightMode": "Claro",
 	"forkOnGitHub": "Clóname en GitHub",
 	"JavascriptRequired": "Cómpre JavaScript para utilizar esta ferramenta!",
 	"abort": "Abortar",

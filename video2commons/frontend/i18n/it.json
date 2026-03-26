@@ -12,6 +12,8 @@
 	"loginOnCommons": "Accedi a Wikimedia Commons",
 	"logout": "Esci",
 	"help": "Aiuto",
+	"darkMode": "Scuro",
+	"lightMode": "Chiaro",
 	"forkOnGitHub": "Effettua il fork su GitHub",
 	"JavascriptRequired": "JavaScript è necessario per utilizzare questo strumento!",
 	"abort": "Interrompi",
