@@ -9,6 +9,8 @@
 	"loginOnCommons": "위키미디어 공용에 로그인",
 	"logout": "로그아웃",
 	"help": "도움말",
+	"darkMode": "다크",
+	"lightMode": "라이트",
 	"forkOnGitHub": "GitHub에서 포크",
 	"JavascriptRequired": "이 도구를 사용하려면 자바스크립트가 필요합니다!",
 	"abort": "중단",
