@@ -465,8 +465,8 @@ sanitationRules = [
         ),
         "replace": "",
     },
-    # everything that wasn't covered yet
-    {"pattern": re.compile(r"[|#+?:/\\\u0000-\u001f\u007f]"), "replace": "-"},
+    # Pipes and backslashes
+    {"pattern": re.compile(r"[|\\]"), "replace": "-"},
     # titleblacklist-custom-double-apostrophe
     {"pattern": re.compile(r"'{2,}"), "replace": '"'},
 ]
