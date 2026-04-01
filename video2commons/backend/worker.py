@@ -17,6 +17,7 @@
 
 """video2commons backend worker."""
 
+import logging
 import os
 import sys
 import shutil
@@ -42,6 +43,8 @@ from video2commons.config import (
     consumer_secret,
 )
 from video2commons.shared.stats import update_task_stats
+
+logging.basicConfig(level=logging.INFO)
 
 redisurl = "redis://:" + redis_pw + "@" + redis_host + ":6379/"
 app = celery.Celery("v2cbackend", backend=redisurl + "1", broker=redisurl + "2")
@@ -136,6 +139,7 @@ def main(
     try:
         statuscallback("Downloading...", -1)
         d = download.download(
+            redisconnection,
             url,
             ie_key,
             downloadkey,

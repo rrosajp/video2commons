@@ -21,15 +21,22 @@ import os
 from urllib.parse import urlparse
 
 from celery.utils.log import get_logger
-import yt_dlp
 from yt_dlp.utils import std_headers, DownloadError
 
 from video2commons.exceptions import TaskError
+from video2commons.shared.ratelimiting import YoutubeDLRateLimited
 from video2commons.shared.yt_dlp import add_youtube_params
 
 
 def download(
-    url, ie_key, formats, subtitles, outputdir, statuscallback=None, errorcallback=None
+    conn,
+    url,
+    ie_key,
+    formats,
+    subtitles,
+    outputdir,
+    statuscallback=None,
+    errorcallback=None,
 ):
     """Download a video from url to outputdir."""
 
@@ -101,7 +108,7 @@ def download(
     try:
         # Not using provided ie_key because of the existance of extractors that
         # targets another extractor, such as TwitterIE.
-        with yt_dlp.YoutubeDL(params) as dl:
+        with YoutubeDLRateLimited(conn, "backend", url, params) as dl:
             dl.add_progress_hook(progresshook)
             statuscallback("Preprocessing...", -1)
             info = dl.extract_info(url, download=True, ie_key=None)
@@ -110,7 +117,7 @@ def download(
         statuscallback(
             "Download failed. creating YoutubeDL instance without local cache", -1
         )
-        with yt_dlp.YoutubeDL(params) as dl:
+        with YoutubeDLRateLimited(conn, "backend", url, params) as dl:
             dl.add_progress_hook(progresshook)
             info = dl.extract_info(url, download=True, ie_key=None)
 
