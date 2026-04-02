@@ -24,11 +24,14 @@ import shutil
 import re
 
 import celery
+import pywikibot
+
 from celery.contrib.abortable import AbortableTask
 from celery.exceptions import Ignore
+from http.cookiejar import DefaultCookiePolicy
 from kombu import Queue
+from pywikibot.comms.http import session
 from redis import Redis
-import pywikibot
 
 from video2commons.exceptions import TaskError, TaskAbort
 from video2commons.backend import download
@@ -45,6 +48,19 @@ from video2commons.config import (
 from video2commons.shared.stats import update_task_stats
 
 logging.basicConfig(level=logging.INFO)
+
+# Reject all cookies from MediaWiki API responses.
+#
+# Pywikibot accumulates Set-Cookie headers across tasks by default. As of March
+# 31st 2026 (T417833) a JWT is now set as a cookie when making certain API
+# requests, even with an OAuth session. Since different users share the same
+# worker process, a stale JWT cookie set during one user's task could be sent
+# with another user's API requests, causing MediaWiki to reject it with an
+# error like: "JWT error: wrong user ID".
+#
+# We don't need to send these cookies for our use case, so the best workaround
+# is to just ignore them so things work exactly as they previously did.
+session.cookies.set_policy(DefaultCookiePolicy(allowed_domains=[]))
 
 redisurl = "redis://:" + redis_pw + "@" + redis_host + ":6379/"
 app = celery.Celery("v2cbackend", backend=redisurl + "1", broker=redisurl + "2")
