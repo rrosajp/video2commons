@@ -31,6 +31,7 @@ import guess_language
 import pywikibot
 import yt_dlp
 
+from video2commons.shared.ratelimiting import YoutubeDLRateLimited
 from video2commons.shared.yt_dlp import add_youtube_params
 from video2commons.frontend.wcqs import WcqsSession
 from video2commons.frontend.shared import redisconnection
@@ -75,6 +76,15 @@ HEAVY_RESOLUTION_THRESHOLD = 3840
 HEAVY_BITRATE_THRESHOLD = 20000
 DEFAULT_QUEUE = "celery"
 HEAVY_QUEUE = "heavy"
+
+# The frontend has a shorter timeout for ratelimiting because it only fetches
+# metadata. Metadata should always be returnable within a minute, so the lock
+# shouldn't be held for too long so URL extractions don't hang for too long.
+RATELIMIT_LOCK_TIMEOUT = 60
+
+# The frontend only extracts metadata (download=False), so extraction request
+# sleeps can be shorter than the default used by the workers.
+RATELIMIT_SLEEP_INTERVAL_REQUESTS = 1
 
 REDIS_PREFIX_BLACKLIST_KEY = "commons:filename-prefix-blacklist"
 REDIS_PREFIX_BLACKLIST_TTL = 24 * 3600  # 1 day
@@ -179,6 +189,7 @@ def do_extract_url(url):
         "subtitlesformat": "srt/ass/vtt/best",
         "cachedir": "/tmp/",
         "noplaylist": False,
+        "sleep_interval_requests": RATELIMIT_SLEEP_INTERVAL_REQUESTS,
     }
 
     if ".youtube.com/" in url:
@@ -192,7 +203,14 @@ def do_extract_url(url):
         if "/playlist" in url or re.search(r"[?&]list=", url):
             params["ignoreerrors"] = True
 
-    with yt_dlp.YoutubeDL(params) as dl:
+    with YoutubeDLRateLimited(
+        conn=redisconnection,
+        source="frontend",
+        url=url,
+        params=params,
+        timeout=RATELIMIT_LOCK_TIMEOUT,
+        blocking_timeout=RATELIMIT_LOCK_TIMEOUT,
+    ) as dl:
         info = dl.extract_info(url, download=False)
 
     # Extract playlist entries if this is a playlist.

@@ -57,6 +57,7 @@ handshaker = Handshaker(api_url, consumer_token)
 
 app = Flask(__name__)
 
+logging.basicConfig(level=logging.INFO)
 app.logger.setLevel(logging.INFO)
 
 app.session_cookie_name = "v2c-session"
