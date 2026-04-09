@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Jimkats",
 			"NikosLikomitros",
 			"Nikosgranturismogt"
 		]
@@ -8,6 +9,8 @@
 	"loginOnCommons": "Σύνδεση στα Wikimedia Commons",
 	"logout": "Αποσύνδεση",
 	"help": "Βοήθεια",
+	"darkMode": "Σκοτεινή",
+	"lightMode": "Φωτεινή",
 	"forkOnGitHub": "Διακλάδωσέ με στο GitHub",
 	"JavascriptRequired": "Το JavaScript απαιτείται να χρησιμοποιήσει αυτό το εργαλείο.",
 	"abort": "Σχετικά",
