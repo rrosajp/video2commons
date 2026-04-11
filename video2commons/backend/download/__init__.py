@@ -27,6 +27,10 @@ from video2commons.exceptions import TaskError
 from video2commons.shared.ratelimiting import YoutubeDLRateLimited
 from video2commons.shared.yt_dlp import add_youtube_params
 
+DEFAULT_DOWNLOAD_MAXSIZE = 5 * (1 << 30)
+MP4_DOWNLOAD_MAXSIZE = 8 * (1 << 30)
+MOV_DOWNLOAD_MAXSIZE = 12 * (1 << 30)
+
 
 def download(
     conn,
@@ -54,6 +58,17 @@ def download(
     errorcallback = errorcallback or (lambda text: None)
     outtmpl = outputdir + "/dl.%(ext)s"
 
+    # Workaround for issue #360 that tweaks the download limits for files that
+    # are likely to be large and compress well after the conversion is complete
+    # (such as ProRes files). If too large Commons will reject it anyway.
+    ext = os.path.splitext(urlparse(url).path)[1].lower()
+    if ext in (".mov", ".qt"):
+        max_filesize = MOV_DOWNLOAD_MAXSIZE
+    elif ext in (".mp4", ".m4v"):
+        max_filesize = MP4_DOWNLOAD_MAXSIZE
+    else:
+        max_filesize = DEFAULT_DOWNLOAD_MAXSIZE
+
     params = {
         "format": formats,
         "outtmpl": outtmpl,
@@ -71,7 +86,7 @@ def download(
                 "format": "srt",
             }
         ],
-        "max_filesize": 5 * (1 << 30),
+        "max_filesize": max_filesize,
         "retries": 10,
         "fragment_retries": 10,
         "prefer_ffmpeg": True,  # avconv do not have srt encoder
