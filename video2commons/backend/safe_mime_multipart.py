@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
-#
-# Copyright (C) 2016 Zhuyifei1999
-#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,17 +10,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
-#
 
-"""videocommons backend."""
+from pywikibot.data.api import CTEBinaryMIMEMultipart
 
-import pywikibot.data.api
 
-from video2commons.backend import worker
-from video2commons.backend.safe_mime_multipart import SafeMIMEMultipart
+class SafeMIMEMultipart(CTEBinaryMIMEMultipart):
+    """Subclass of CTEBinaryMIMEMultipart to workaround 'From' mangling."""
 
-# HACK: Monkeypatch pywikibot.data.api.MIMEMultipart to use a custom subclass
-# with a policy to unset 'From' mangling (#362).
-pywikibot.data.api.MIMEMultipart = SafeMIMEMultipart
-
-__all__ = ["worker"]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.policy = self.policy.clone(mangle_from_=False)
