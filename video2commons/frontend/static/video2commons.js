@@ -1,4 +1,6 @@
-/* globals nunjucks: false, io: false, Qs: false, bootstrap: false, ChunkedUploader: false */
+/* globals nunjucks: false, io: false, Qs: false, bootstrap: false */
+import { ChunkedUploader } from "./ChunkedUploader.js";
+
 (($) => {
 	/**
 	 * Translates a message key with optional parameters (URLs and positional).
@@ -1774,7 +1776,7 @@
 				$addTaskDialog.find("#fileupload").val("");
 
 				const $progress = $addTaskDialog.find("#upload-progress");
-				video2commons.setProgressBar($progress, 0,);
+				video2commons.setProgressBar($progress, 0);
 
 				uploader = null;
 			};

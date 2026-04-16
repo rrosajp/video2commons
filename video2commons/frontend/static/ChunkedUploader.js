@@ -51,7 +51,6 @@ class UploadInterrupted extends Error {
  * @fires ChunkedUploader#online
  * @fires ChunkedUploader#offline
  */
-// biome-ignore lint/correctness/noUnusedVariables: loaded via <script>, used by video2commons.js
 class ChunkedUploader extends EventTarget {
 	/**
 	 * @param {object} config
@@ -408,3 +407,5 @@ class ChunkedUploader extends EventTarget {
 		}
 	}
 }
+
+export { ChunkedUploader };

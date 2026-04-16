@@ -1,3 +1,4 @@
+import { build as esbuild } from "esbuild";
 import gulp from "gulp";
 import concat from "gulp-concat";
 import htmlmin from "gulp-htmlmin";
@@ -6,14 +7,15 @@ import rename from "gulp-rename";
 import uglify from "gulp-uglify";
 
 gulp.task("scripts", () =>
-	gulp
-		.src([
-			"./video2commons/frontend/static/*.js",
-			"!./video2commons/frontend/static/*.min.js",
-		])
-		.pipe(rename({ suffix: ".min" }))
-		.pipe(uglify())
-		.pipe(gulp.dest("./video2commons/frontend/static/")),
+	esbuild({
+		entryPoints: ["./video2commons/frontend/static/video2commons.js"],
+		outfile: "./video2commons/frontend/static/video2commons.min.js",
+		bundle: true,
+		minify: true,
+		format: "esm",
+		sourcemap: true,
+		target: ["chrome116", "firefox124", "safari17.4"],
+	}),
 );
 
 gulp.task("jinja2", () =>

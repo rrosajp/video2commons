@@ -3,19 +3,24 @@
   "private": true,
   "scripts": {
     "start": "npm install && node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "gulp build",
+    "watch": "gulp",
+    "test": "vitest run",
     "lint": "biome ci",
     "format": "biome format --write"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
+    "esbuild": "^0.28.0",
     "esm": "^3.2.25",
     "gulp": "^5.0.1",
     "gulp-concat": "^2.6.1",
     "gulp-htmlmin": "^5.0.1",
     "gulp-nunjucks": "^6.1.0",
     "gulp-rename": "^2.1.0",
-    "gulp-uglify": "^3.0.2"
+    "gulp-uglify": "^3.0.2",
+    "msw": "^2.13.4",
+    "vitest": "^4.1.4"
   },
   "dependencies": {
     "express": "^5.2.1",
