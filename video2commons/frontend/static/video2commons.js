@@ -1,4 +1,4 @@
-/* globals nunjucks: false, io: false, Qs: false, bootstrap: false */
+/* globals nunjucks: false, io: false, Qs: false, bootstrap: false, ChunkedUploader: false */
 (($) => {
 	/**
 	 * Translates a message key with optional parameters (URLs and positional).
@@ -1762,87 +1762,67 @@
 			if (deferred && deferred.state() === "pending") {
 				deferred.reject(abortReason);
 			}
-			if (window.jqXHR?.abort) {
-				window.jqXHR.abort();
-			}
 		},
 
 		initUpload: () => {
-			var deferred;
+			let deferred;
+			let uploader;
 
-			window.jqXHR = $addTaskDialog
-				.find("#fileupload")
-				.fileupload({
-					dataType: "json",
-					formData: {
-						_csrf_token: csrfToken,
-					},
-					maxChunkSize: 4 << 20,
-					sequentialUploads: true,
-				})
-				.on("fileuploadadd", (_e, data) => {
-					window.jqXHR = data.submit();
-					deferred = $.Deferred();
-					video2commons.promiseWorkingOn(deferred.promise());
-					$addTaskDialog.find("#src-url").hide();
-					$addTaskDialog.find("#src-uploading").show();
+			const resetUploadUI = () => {
+				$addTaskDialog.find("#src-url").show();
+				$addTaskDialog.find("#src-uploading").hide();
+				$addTaskDialog.find("#fileupload").val("");
 
-					$addTaskDialog
-						.find("#upload-abort")
-						.off()
-						.click(() => {
-							video2commons.abortUpload(deferred, "Upload aborted.");
-						});
-				})
-				.on("fileuploadchunkdone", (_e, data) => {
-					if (data.result.filekey) {
-						data.formData.filekey = data.result.filekey;
-					}
-					if (data.result.result === "Continue") {
-						if (data.result.offset !== data.uploadedBytes) {
-							video2commons.abortUpload(
-								deferred,
-								`Unexpected offset! Expected: ${data.uploadedBytes} Returned: ${data.result.offset}`,
-							);
-							// data.uploadedBytes = data.result.offset; // FIXME: Doesn't work, so we have to abort it
-						}
-					} else if (data.result.error) {
-						video2commons.abortUpload(deferred, data.result.error);
-					} else {
-						video2commons.abortUpload();
-					}
-				})
-				.on("fileuploadprogressall", (_e, data) => {
+				const $progress = $addTaskDialog.find("#upload-progress");
+				video2commons.setProgressBar($progress, 0,);
+
+				uploader = null;
+			};
+
+			$addTaskDialog.find("#fileupload").on("change", (e) => {
+				const file = e.target.files[0];
+				if (!file) return;
+
+				deferred = $.Deferred();
+				video2commons.promiseWorkingOn(deferred.promise());
+				$addTaskDialog.find("#src-url").hide();
+				$addTaskDialog.find("#src-uploading").show();
+
+				uploader = new ChunkedUploader({
+					endpoint: "/api/upload/upload",
+					file,
+					csrfToken,
+				});
+
+				uploader.addEventListener("progress", (ev) => {
 					video2commons.setProgressBar(
 						$addTaskDialog.find("#upload-progress"),
-						(data.loaded / data.total) * 100,
+						ev.detail.percent,
 					);
-				})
-				.on("fileuploadalways", (_e, data) => {
-					delete data.formData.filekey; // Reset
-					video2commons.reactivatePrevNextButtons();
-					$addTaskDialog.find("#src-url").show();
-					$addTaskDialog.find("#src-uploading").hide();
-				})
-				.on("fileuploadfail", () => {
-					video2commons.abortUpload(
-						deferred,
-						"Something went wrong while uploading... try again?",
-					);
-				})
-				.on("fileuploaddone", (_e, data) => {
-					if (data.result.result === "Success") {
-						var url = `uploads:${data.result.filekey}`;
-						newTaskData.uploadedFile[url] = data.files[0];
-						$addTaskDialog.find("#url").val(url);
-						deferred.resolve();
-					} else {
-						video2commons.abortUpload(
-							deferred,
-							"Upload does not seem to be successful.",
-						);
-					}
 				});
+
+				uploader.addEventListener("finish", (ev) => {
+					const url = `uploads:${ev.detail.filekey}`;
+					newTaskData.uploadedFile[url] = file;
+					$addTaskDialog.find("#url").val(url);
+					deferred.resolve();
+					resetUploadUI();
+				});
+
+				uploader.addEventListener("error", (ev) => {
+					video2commons.abortUpload(deferred, ev.detail.message);
+					resetUploadUI();
+				});
+
+				uploader.start();
+
+				$addTaskDialog
+					.find("#upload-abort")
+					.off()
+					.click(() => {
+						if (uploader) uploader.abort();
+					});
+			});
 		},
 
 		askAPI: (url, datain, dataout, object = null) => {
