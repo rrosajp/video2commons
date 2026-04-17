@@ -10,6 +10,36 @@
     })();
   </script>
 
+  <style>
+    /*
+     * Paint the dark background before Bootstrap CSS loads so there is no
+     * white flash for users with the dark theme.
+     */
+    html[data-bs-theme="dark"],
+    html[data-bs-theme="dark"] body {
+      background-color: #101418;
+    }
+
+    /*
+     * Hide the body until the DOM is ready and stylesheets have applied. The
+     * main bundle is a deferred module and finishes populating content
+     * before DOMContentLoaded fires.
+     */
+    body {
+      visibility: hidden;
+    }
+  </style>
+  <noscript>
+    <style>
+      /*
+       * Show body when JS is disabled so users can see the JS required message.
+       */
+      body {
+        visibility: visible !important;
+      }
+    </style>
+  </noscript>
+
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
   <title>video2commons</title>
   <!--
@@ -324,6 +354,11 @@
       margin-inline-end: 4px;
     }
   </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.body.style.visibility = "visible";
+    });
+  </script>
 </head>
 <body>
   <nav class="navbar navbar-expand fixed-top bg-body-tertiary">

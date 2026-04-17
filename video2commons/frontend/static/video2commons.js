@@ -724,6 +724,7 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 			theme.init();
 
 			$("#content").html(htmlContent.loading);
+			document.body.style.visibility = "visible";
 
 			video2commons.loadCsrf(video2commons.checkStatus);
 
