@@ -1775,6 +1775,14 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 		initUpload: () => {
 			let deferred;
 
+			const setUploadStatus = (variant, text) => {
+				$addTaskDialog
+					.find("#upload-status")
+					.removeClass("alert-warning alert-info alert-danger")
+					.addClass(variant ? `alert-${variant}` : "")
+					.text(text);
+			};
+
 			const resetUploadUI = () => {
 				$addTaskDialog.find("#src-url").show();
 				$addTaskDialog.find("#src-uploading").hide();
@@ -1789,6 +1797,9 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 			$addTaskDialog.find("#fileupload").on("change", (e) => {
 				const file = e.target.files[0];
 				if (!file) return;
+
+				// Clear any persistent error from a previous attempt.
+				setUploadStatus(null, "");
 
 				deferred = $.Deferred();
 				video2commons.promiseWorkingOn(deferred.promise());
@@ -1806,17 +1817,46 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 						$addTaskDialog.find("#upload-progress"),
 						ev.detail.percent,
 					);
+					setUploadStatus(null, "");
+				});
+
+				uploader.addEventListener("retry", (ev) => {
+					const { attempt, maxAttempts, error } = ev.detail;
+					setUploadStatus(
+						"warning",
+						translate("uploadRetry", {
+							params: [attempt, maxAttempts, error],
+						}),
+					);
+				});
+
+				uploader.addEventListener("offline", () => {
+					setUploadStatus("info", translate("uploadOffline"));
+				});
+
+				uploader.addEventListener("online", () => {
+					setUploadStatus(null, "");
 				});
 
 				uploader.addEventListener("finish", (ev) => {
 					const url = `uploads:${ev.detail.filekey}`;
 					newTaskData.uploadedFile[url] = file;
 					$addTaskDialog.find("#url").val(url);
+					setUploadStatus(null, "");
 					deferred.resolve();
 					resetUploadUI();
 				});
 
 				uploader.addEventListener("error", (ev) => {
+					if (ev.detail.type === "abort") {
+						// Clear any lingering retry/offline alerts.
+						setUploadStatus(null, "");
+					} else {
+						setUploadStatus(
+							"danger",
+							translate("uploadFailed", { params: [ev.detail.message] }),
+						);
+					}
 					video2commons.abortUpload(deferred, ev.detail.message);
 					resetUploadUI();
 				});

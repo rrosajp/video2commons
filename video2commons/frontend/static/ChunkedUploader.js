@@ -2,7 +2,7 @@
 /** @typedef {"online"|"offline"|"progress"|"finish"|"error"|"retry"} UploadEvent */
 
 const DEFAULT_CHUNK_SIZE = 4_000_000;
-const DEFAULT_RETRIES = 5;
+const DEFAULT_MAX_ATTEMPTS = 5;
 const DEFAULT_RETRY_DELAY = 5_000;
 const DEFAULT_CHUNK_TIMEOUT = 120_000;
 
@@ -58,8 +58,8 @@ class ChunkedUploader extends EventTarget {
 	 * @param {File}   config.file      File to upload
 	 * @param {string} config.csrfToken CSRF token for the session
 	 * @param {number} [config.chunkSize=4000000]   Bytes per chunk
-	 * @param {number} [config.retries=5]           Per-chunk retry budget
-	 * @param {number} [config.retryDelay=5000]     Ms between retries
+	 * @param {number} [config.maxAttempts=5]       Per-chunk maximum attempts
+	 * @param {number} [config.retryDelay=5000]     Ms between attempts
 	 * @param {number} [config.chunkTimeout=120000] Ms before a chunk request times out
 	 */
 	constructor({
@@ -67,7 +67,7 @@ class ChunkedUploader extends EventTarget {
 		file,
 		csrfToken,
 		chunkSize = DEFAULT_CHUNK_SIZE,
-		retries = DEFAULT_RETRIES,
+		maxAttempts = DEFAULT_MAX_ATTEMPTS,
 		retryDelay = DEFAULT_RETRY_DELAY,
 		chunkTimeout = DEFAULT_CHUNK_TIMEOUT,
 	}) {
@@ -77,7 +77,7 @@ class ChunkedUploader extends EventTarget {
 		this._file = file;
 		this._csrfToken = csrfToken;
 		this._chunkSize = chunkSize;
-		this._retries = retries;
+		this._maxAttempts = maxAttempts;
 		this._retryDelay = retryDelay;
 		this._chunkTimeout = chunkTimeout;
 
@@ -129,6 +129,7 @@ class ChunkedUploader extends EventTarget {
 		this._transition("aborted");
 
 		this._emit("error", {
+			type: "abort",
 			message: "Upload aborted",
 			chunk: this._chunkIndex,
 		});
@@ -346,24 +347,31 @@ class ChunkedUploader extends EventTarget {
 	 * @param {number} index
 	 * @returns {Promise<object>}
 	 */
-	async _uploadChunkWithRetries(chunk, index) {
-		let retriesLeft = this._retries;
+	async _uploadChunkWithAttempts(chunk, index) {
+		let attempt = 1;
 
 		while (true) {
 			try {
 				return await this._uploadChunk(chunk, index);
 			} catch (error) {
+				// The fetch was aborted by our own state transition (pause on
+				// offline, or abort()). Bail without emitting a retry.
+				if (this._uploadState !== "sending") {
+					throw new UploadInterrupted("Upload interrupted");
+				}
+
 				// Assume errors that aren't our custom UploadError are
 				// transient network related errors, which are retryable.
 				const retryable = error instanceof UploadError ? error.retryable : true;
-				if (!retryable || retriesLeft === 0) {
+				if (!retryable || attempt >= this._maxAttempts) {
 					throw error;
 				}
-				retriesLeft--;
+				attempt++;
 
 				this._emit("retry", {
 					chunk: index,
-					retriesLeft,
+					attempt,
+					maxAttempts: this._maxAttempts,
 					error: error.message,
 				});
 
@@ -394,7 +402,7 @@ class ChunkedUploader extends EventTarget {
 				// Throws UploadInterrupted if the upload is paused or aborted
 				// during a retry delay. If the loop is exited due to going
 				// offline, _onNetworkOnline will re-invoke _upload later.
-				const data = await this._uploadChunkWithRetries(
+				const data = await this._uploadChunkWithAttempts(
 					this._getChunkAtIndex(this._chunkIndex),
 					this._chunkIndex,
 				);
@@ -417,7 +425,11 @@ class ChunkedUploader extends EventTarget {
 			if (error instanceof UploadInterrupted) return;
 
 			this._transition("error");
-			this._emit("error", { message: error.message, chunk: this._chunkIndex });
+			this._emit("error", {
+				type: "failure",
+				message: error.message,
+				chunk: this._chunkIndex,
+			});
 		}
 	}
 }

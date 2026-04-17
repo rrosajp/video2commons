@@ -150,7 +150,7 @@ describe("ChunkedUploader", () => {
 			file,
 			csrfToken: "csrf",
 			chunkSize: 100,
-			retries: 3,
+			maxAttempts: 4,
 			retryDelay: 10,
 		});
 
@@ -164,7 +164,8 @@ describe("ChunkedUploader", () => {
 		expect(retryEvents).toHaveLength(1);
 		expect(retryEvents[0].detail).toEqual({
 			chunk: 1,
-			retriesLeft: 2,
+			attempt: 2,
+			maxAttempts: 4,
 			error: "Server error (503)",
 		});
 	});
@@ -190,7 +191,7 @@ describe("ChunkedUploader", () => {
 			file,
 			csrfToken: "csrf",
 			chunkSize: 100,
-			retries: 2,
+			maxAttempts: 3,
 			retryDelay: 10,
 		});
 
@@ -199,10 +200,11 @@ describe("ChunkedUploader", () => {
 		uploader.start();
 		const errorEvent = await awaitEvent(uploader, "error");
 
-		// Retries: 2 means 3 total attempts on chunk 1, so 2 retry events.
+		// 3 attempts on chunk 1 means 2 retry events, for attempts 2 and 3.
 		expect(retryEvents).toHaveLength(2);
-		expect(retryEvents.map((e) => e.detail.retriesLeft)).toEqual([1, 0]);
+		expect(retryEvents.map((e) => e.detail.attempt)).toEqual([2, 3]);
 		expect(errorEvent.detail).toEqual({
+			type: "failure",
 			message: "Server error (503)",
 			chunk: 1,
 		});
@@ -214,7 +216,7 @@ describe("ChunkedUploader", () => {
 		const { handler, requests, filekey } = createUploadHandler();
 
 		// Fail chunks 1 and 2 twice each before letting them through. With
-		// retries: 2, both chunks need their full retry budget — if the
+		// maxAttempts: 3, both chunks need their full retry budget if the
 		// budget weren't reset between chunks, chunk 2 would error out.
 		let seen = 0;
 		const flakyHandler = http.post(UPLOAD_ENDPOINT, () => {
@@ -236,7 +238,7 @@ describe("ChunkedUploader", () => {
 			file,
 			csrfToken: "csrf",
 			chunkSize: 100,
-			retries: 2,
+			maxAttempts: 3,
 			retryDelay: 10,
 		});
 
@@ -248,10 +250,10 @@ describe("ChunkedUploader", () => {
 		expect(result.filekey).toBe(filekey);
 		expect(requests).toHaveLength(3);
 		expect(retryEvents.map((e) => e.detail)).toEqual([
-			{ chunk: 1, retriesLeft: 1, error: "Server error (503)" },
-			{ chunk: 1, retriesLeft: 0, error: "Server error (503)" },
-			{ chunk: 2, retriesLeft: 1, error: "Server error (503)" },
-			{ chunk: 2, retriesLeft: 0, error: "Server error (503)" },
+			{ chunk: 1, attempt: 2, maxAttempts: 3, error: "Server error (503)" },
+			{ chunk: 1, attempt: 3, maxAttempts: 3, error: "Server error (503)" },
+			{ chunk: 2, attempt: 2, maxAttempts: 3, error: "Server error (503)" },
+			{ chunk: 2, attempt: 3, maxAttempts: 3, error: "Server error (503)" },
 		]);
 	});
 
@@ -276,7 +278,7 @@ describe("ChunkedUploader", () => {
 			file,
 			csrfToken: "csrf",
 			chunkSize: 100,
-			retries: 3,
+			maxAttempts: 4,
 			retryDelay: 10,
 		});
 
@@ -287,6 +289,7 @@ describe("ChunkedUploader", () => {
 
 		expect(retryEvents).toHaveLength(0);
 		expect(errorEvent.detail).toEqual({
+			type: "failure",
 			message: "Server error (400)",
 			chunk: 1,
 		});
@@ -327,7 +330,7 @@ describe("ChunkedUploader", () => {
 			csrfToken: "csrf",
 			chunkSize: 100,
 			chunkTimeout: 5_000,
-			retries: 0,
+			maxAttempts: 1,
 		});
 
 		const errorPromise = awaitEvent(uploader, "error");
@@ -366,6 +369,7 @@ describe("ChunkedUploader", () => {
 		const errorEvent = await awaitEvent(uploader, "error");
 
 		expect(errorEvent.detail).toEqual({
+			type: "abort",
 			message: "Upload aborted",
 			chunk: 1,
 		});
@@ -399,7 +403,7 @@ describe("ChunkedUploader", () => {
 			file,
 			csrfToken: "csrf",
 			chunkSize: 100,
-			retries: 3,
+			maxAttempts: 4,
 			retryDelay: 10,
 		});
 
@@ -410,6 +414,7 @@ describe("ChunkedUploader", () => {
 
 		expect(retryEvents).toHaveLength(0);
 		expect(errorEvent.detail).toEqual({
+			type: "failure",
 			message: "Invalid session",
 			chunk: 1,
 		});
@@ -456,7 +461,7 @@ describe("ChunkedUploader", () => {
 			file,
 			csrfToken: "csrf",
 			chunkSize: 100,
-			retries: 3,
+			maxAttempts: 4,
 			retryDelay: 10,
 		});
 
@@ -467,6 +472,7 @@ describe("ChunkedUploader", () => {
 
 		expect(retryEvents).toHaveLength(0);
 		expect(errorEvent.detail).toEqual({
+			type: "failure",
 			message: "Offset mismatch: expected 100, got 50",
 			chunk: 0,
 		});
