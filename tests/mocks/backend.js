@@ -1,7 +1,7 @@
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 
-export const DEFAULT_UPLOAD_ENDPOINT = "http://localhost/api/upload/upload";
+export const UPLOAD_ENDPOINT = "http://localhost/api/upload/upload";
 
 export const server = setupServer();
 
@@ -10,23 +10,40 @@ export const server = setupServer();
  * endpoint.
  *
  * Tracks a per-instance offset across requests and mirrors the backend
- * contract: Continue responses until the final chunk, then Success. Returns
- * the handler alongside a `requests` array so tests can assert on the actual
- * Request objects received (headers, bodies).
+ * contract. Continue responses are returned until the final chunk, then
+ * finally a Success response. Returns the handler alongside a `requests`
+ * array so tests can assert on the actual Request objects received.
+ *
+ * While offline (toggled via `setOffline`), new requests fail with an error
+ * mirroring how a browser rejects fetches when connectivity is lost, though
+ * in real scenarios this might take a moment. The server offset is
+ * untouched, so an interrupted chunk can be safely resent on resume.
  *
  * @param {object}  [options]
  * @param {string}  [options.endpoint] Full URL to match.
  * @param {string}  [options.filekey]  Filekey returned to the client.
- * @returns {{ handler: import("msw").HttpHandler, requests: Request[], filekey: string }}
+ * @returns {{
+ *   handler: import("msw").HttpHandler,
+ *   requests: Request[],
+ *   filekey: string,
+ *   setOffline: (offline: boolean) => void,
+ * }}
  */
 export function createUploadHandler({
-	endpoint = DEFAULT_UPLOAD_ENDPOINT,
+	endpoint = UPLOAD_ENDPOINT,
 	filekey = `test-${Math.random().toString(36).slice(2, 10)}`,
 } = {}) {
 	let offset = 0;
+	let offline = false;
 	const requests = [];
 
 	const handler = http.post(endpoint, async ({ request }) => {
+		if (offline) {
+			// Simulate a network-level error. The name doesn't matter.
+			// Network-level errors and 5xx HTTP errors are treated the same.
+			return HttpResponse.error();
+		}
+
 		requests.push(request.clone());
 
 		const range = request.headers.get("Content-Range");
@@ -70,5 +87,10 @@ export function createUploadHandler({
 		});
 	});
 
-	return { handler, requests, filekey };
+	const setOffline = (value) => {
+		offline = value;
+		window.dispatchEvent(new Event(value ? "offline" : "online"));
+	};
+
+	return { handler, requests, filekey, setOffline };
 }

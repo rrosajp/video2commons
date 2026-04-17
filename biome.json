@@ -6,7 +6,13 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["Gulpfile.mjs", "**/*.js", "!**/*.min.js"],
+		"includes": [
+			"Gulpfile.mjs",
+			"**/*.js",
+			"!**/*.min.js",
+			"!video2commons/frontend/static/ssu",
+			"!video2commons/frontend/static/uploads"
+		],
 		"ignoreUnknown": false
 	},
 	"formatter": {

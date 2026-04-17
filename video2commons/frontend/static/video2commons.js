@@ -145,7 +145,7 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 			.addGlobal("_", translate)
 			.addFilter("process_link", processLink);
 
-	var $detailsModal, $addTaskDialog, newTaskData, newTaskDataQS;
+	var $detailsModal, $addTaskDialog, newTaskData, newTaskDataQS, uploader;
 
 	/**
 	 * Validate date category names.
@@ -555,7 +555,7 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 	const steps = {
 		source: () => {
 			const data = form.getSourceData();
-			oldTaskData = { ...newTaskData };
+			const oldTaskData = { ...newTaskData };
 			newTaskData = { ...newTaskData, ...data, selectedVideos: [] };
 
 			return $.when(
@@ -1228,6 +1228,12 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 					video2commons.abortUpload();
 				});
 
+				// Abort any running upload if the dialog is dismissed so
+				// the ChunkedUploader's window listeners are removed.
+				$addTaskDialog.on("hidden.bs.modal", () => {
+					uploader?.abort();
+				});
+
 				// HACK
 				$addTaskDialog.find(".modal-body").keypress((e) => {
 					if ((e.which || e.keyCode) === 13 && !$(":focus").is("textarea")) {
@@ -1768,7 +1774,6 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 
 		initUpload: () => {
 			let deferred;
-			let uploader;
 
 			const resetUploadUI = () => {
 				$addTaskDialog.find("#src-url").show();
@@ -1822,7 +1827,7 @@ import { ChunkedUploader } from "./ChunkedUploader.js";
 					.find("#upload-abort")
 					.off()
 					.click(() => {
-						if (uploader) uploader.abort();
+						uploader?.abort();
 					});
 			});
 		},

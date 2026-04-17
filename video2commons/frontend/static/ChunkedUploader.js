@@ -88,9 +88,12 @@ class ChunkedUploader extends EventTarget {
 		/** @type {UploadState} */
 		this._uploadState = "idle";
 
-		// Aborts in-flight fetch requests and window online/offline
-		// listeners once the upload reaches a final state.
-		this._controller = new AbortController();
+		// Removes window online/offline listeners on final state.
+		this._teardownController = new AbortController();
+
+		// Cancels the pending fetch or retry sleep on pause or final state.
+		// Replaced on each transition to sending.
+		this._inflightController = new AbortController();
 	}
 
 	/**
@@ -104,7 +107,7 @@ class ChunkedUploader extends EventTarget {
 
 		this._transition("sending");
 
-		const opts = { signal: this._controller.signal };
+		const opts = { signal: this._teardownController.signal };
 		window.addEventListener("online", this._onNetworkOnline.bind(this), opts);
 		window.addEventListener("offline", this._onNetworkOffline.bind(this), opts);
 
@@ -132,17 +135,25 @@ class ChunkedUploader extends EventTarget {
 	}
 
 	/**
-	 * Transition to a new state. Aborts in-flight fetches and window
-	 * listeners when the upload reaches a finalized state.
+	 * Transition to a new state.
+	 *
+	 * Leaving "sending" cancels the current active fetch request and retry
+	 * setTimeout. Reaching a final state also removes the window listeners.
 	 *
 	 * @param {UploadState} to
 	 */
 	_transition(to) {
 		this._uploadState = to;
 
+		if (to === "sending") {
+			this._inflightController = new AbortController();
+		} else {
+			this._inflightController.abort();
+		}
+
 		const finalized = to === "done" || to === "error" || to === "aborted";
 		if (finalized) {
-			this._controller.abort();
+			this._teardownController.abort();
 		}
 	}
 
@@ -162,7 +173,7 @@ class ChunkedUploader extends EventTarget {
 	 */
 	_sleep(ms) {
 		return new Promise((resolve) => {
-			if (this._controller.signal.aborted) {
+			if (this._inflightController.signal.aborted) {
 				resolve();
 				return;
 			}
@@ -171,11 +182,13 @@ class ChunkedUploader extends EventTarget {
 				clearTimeout(timeoutId);
 				resolve();
 			};
+
 			const timeoutId = setTimeout(() => {
-				this._controller.signal.removeEventListener("abort", onAbort);
+				this._inflightController.signal.removeEventListener("abort", onAbort);
 				resolve();
 			}, ms);
-			this._controller.signal.addEventListener("abort", onAbort, {
+
+			this._inflightController.signal.addEventListener("abort", onAbort, {
 				once: true,
 			});
 		});
@@ -276,7 +289,7 @@ class ChunkedUploader extends EventTarget {
 		}
 
 		const signal = AbortSignal.any([
-			this._controller.signal,
+			this._inflightController.signal,
 			AbortSignal.timeout(this._chunkTimeout),
 		]);
 
@@ -295,16 +308,17 @@ class ChunkedUploader extends EventTarget {
 	 *
 	 * The backend always returns 200 for both success and application errors.
 	 * Non-200 status codes come from infrastructure (nginx, reverse proxy):
-	 * 5xx are retryable, 4xx are not.
+	 * 5xx are retryable, 4xx are not save for a few.
 	 *
 	 * @param {Response} response
 	 * @returns {Promise<object>}
 	 */
 	async _parseResponse(response) {
 		if (!response.ok) {
-			throw new UploadError(`Server error (${response.status})`, {
-				retryable: response.status >= 500,
-			});
+			const { status } = response;
+			const retryable =
+				status >= 500 || status === 408 || status === 425 || status === 429;
+			throw new UploadError(`Server error (${status})`, { retryable });
 		}
 
 		let data;
@@ -354,7 +368,7 @@ class ChunkedUploader extends EventTarget {
 				});
 
 				// Wait before retrying to give time for issues to resolve.
-				// Resolves early if the controller is aborted (user abort).
+				// Resolves early if we leave the "sending" state.
 				await this._sleep(this._retryDelay);
 
 				// Bail if the upload was aborted or paused during the delay.

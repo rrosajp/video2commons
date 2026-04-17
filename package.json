@@ -7,7 +7,7 @@
     "watch": "gulp",
     "test": "vitest run",
     "lint": "biome ci",
-    "format": "biome format --write"
+    "format": "biome check --write"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",

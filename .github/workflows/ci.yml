@@ -32,13 +32,27 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Remove broken symlinks
-        run: |
-          rm -f video2commons/frontend/static/ssu
-          rm -f video2commons/frontend/static/uploads
-
       - name: Build
         run: npx gulp build
+
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Run vitest
+        run: npm test
 
   biome:
     runs-on: ubuntu-latest
@@ -49,11 +63,6 @@ jobs:
 
       - name: Setup Biome
         uses: biomejs/setup-biome@v2.7.0
-
-      - name: Remove broken symlinks
-        run: |
-          rm -f video2commons/frontend/static/ssu
-          rm -f video2commons/frontend/static/uploads
 
       - name: Run Biome
         run: biome ci .

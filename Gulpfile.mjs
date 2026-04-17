@@ -14,7 +14,6 @@ gulp.task("scripts", () =>
 		minify: true,
 		format: "esm",
 		sourcemap: true,
-		target: ["chrome116", "firefox124", "safari17.4"],
 	}),
 );
 

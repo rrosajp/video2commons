@@ -55,3 +55,4 @@ www/js/
 video2commons/frontend/static/*.min.js
 video2commons/frontend/templates/*.min.html
 video2commons/frontend/static/*.map
+video2commons/frontend/static/*.min.map
