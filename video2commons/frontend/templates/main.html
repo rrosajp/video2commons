@@ -1,20 +1,17 @@
 {% extends "base.min.html" %}
 {% block jscss %}
 {% if loggedin %}
-<script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
-<script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/nunjucks/3.2.4/nunjucks-slim.min.js"></script>
-<script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/qs/6.5.2/qs.min.js"></script>
-<script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/blueimp-file-upload/9.12.5/js/vendor/jquery.ui.widget.js"></script>
-<script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/blueimp-file-upload/9.12.5/js/jquery.fileupload.min.js"></script>
-<link href="//tools-static.wmflabs.org/cdnjs/ajax/libs/blueimp-file-upload/9.12.5/css/jquery.fileupload.css" rel="stylesheet">
+<script defer src="//tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script defer src="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
+<script defer src="//tools-static.wmflabs.org/cdnjs/ajax/libs/nunjucks/3.2.4/nunjucks-slim.min.js"></script>
+<script defer src="//tools-static.wmflabs.org/cdnjs/ajax/libs/qs/6.5.2/qs.min.js"></script>
 {% if config.socketio_uri %}
-<script src="{{ config.socketio_uri }}/socket.io.js"></script>
+<script defer src="{{ config.socketio_uri }}/socket.io.js"></script>
 {% endif %}
-<script src="config"></script>
-<script src="i18n/{{ lang() }}"></script>
-<script src="static/templates.min.js"></script>
-<script src="static/video2commons.min.js"></script>
+<script defer src="config"></script>
+<script defer src="i18n/{{ lang() }}"></script>
+<script defer src="static/templates.min.js"></script>
+<script type="module" src="static/video2commons.min.js"></script>
 {% endif %}
 {% endblock %}
 {% block content %}
