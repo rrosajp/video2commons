@@ -34,7 +34,7 @@ while read -r encoder_host; do
 
     # Copy the cookie over to the encoder.
     scp -o ProxyJump="$V2C_USERNAME@$bastion_host" \
-        "$cookie_file" "$V2C_USERNAME@$encoder_host:$cookie_file"
+        "$cookie_file" "$V2C_USERNAME@$encoder_host:$cookie_file" >/dev/null
 
     if [ $? -ne 0 ]; then
         echo "Failed to upload cookies to '$encoder_host'" >&2

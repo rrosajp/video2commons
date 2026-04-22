@@ -3,8 +3,9 @@
 """Export YouTube session cookies in Netscape format using a headed browser."""
 
 import os
+import tempfile
 
-from playwright.sync_api import Cookie, Playwright, sync_playwright
+from patchright.sync_api import Cookie, Playwright, sync_playwright
 
 
 LOGIN_URL = (
@@ -68,25 +69,27 @@ def netscape_cookies(cookies: list[Cookie]) -> str:
 def interactively_login(playwright: Playwright) -> list[Cookie]:
     """Interactively log in to a Google/YouTube account and return cookies."""
 
-    browser, context = None, None
-
-    try:
-        browser = playwright.chromium.launch(headless=False)
-        context = browser.new_context()
-        page = context.new_page()
-        page.goto(LOGIN_URL)
-
-        input(
-            "Instructions: Log in to your Google/YouTube account in the browser, "
-            "then press [Enter] here to save your session cookies..."
+    # Patchright requires launch_persistent_context to apply its anti-detection
+    # patches, so a throwaway profile directory is needed.
+    with tempfile.TemporaryDirectory() as user_data_dir:
+        context = playwright.chromium.launch_persistent_context(
+            user_data_dir,
+            headless=False,
+            no_viewport=True,
         )
 
-        return context.cookies()
-    finally:
-        if context:
+        try:
+            page = context.new_page()
+            page.goto(LOGIN_URL)
+
+            input(
+                "Instructions: Log in to your Google/YouTube account in the browser, "
+                "then press [Enter] here to save your session cookies..."
+            )
+
+            return context.cookies()
+        finally:
             context.close()
-        if browser:
-            browser.close()
 
 
 def main():
